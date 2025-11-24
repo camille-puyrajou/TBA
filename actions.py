@@ -55,9 +55,17 @@ class Actions:
 
         # Get the direction from the list of words.
         direction = list_of_words[1]
+        # Take only the first letter and make it uppercase.
+        direction = direction.upper()[0] 
+
+        # If the direction is not valid, print an error message and return False.
+        if direction not in player.current_room.exits.keys():
+            print("\n Cette direction n'existe pas ! Veuillez utiliser une des directions suivantes :\n ", player.current_room.get_exit_string(), "\n")
+          
         # Move the player in the direction specified by the parameter.
-        player.move(direction)
-        return True
+        else:
+            player.move(direction)
+            return True
 
     def quit(game, list_of_words, number_of_parameters):
         """

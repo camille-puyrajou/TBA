@@ -38,8 +38,10 @@ class Player():
 
         # If the next room is None, print an error message and return False.
         if next_room is None:
-            print("\nAucune porte dans cette direction !\n")
+            print("\nCe chemin n'est pas accessible !\n")
             return False
+        
+
         
         # Set the current room to the next room.
         self.current_room = next_room

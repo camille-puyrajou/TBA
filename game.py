@@ -25,37 +25,67 @@ class Game:
         self.commands["help"] = help
         quit = Command("quit", " : quitter le jeu", Actions.quit, 0)
         self.commands["quit"] = quit
-        go = Command("go", " <direction> : se déplacer dans une direction cardinale (N, E, S, O)", Actions.go, 1)
+        go = Command("go", " <direction> : se déplacer dans une direction cardinale (N, E, S, O, U, D)", Actions.go, 1)
         self.commands["go"] = go
         
         # Setup rooms
 
-        forest = Room("Forest", "une forêt enchantée. Vous entendez une brise légère à travers la cime des arbres.")
-        self.rooms.append(forest)
-        tower = Room("Tower", "une immense tour en pierre qui s'élève au dessus des nuages.")
-        self.rooms.append(tower)
-        cave = Room("Cave", "une grotte profonde et sombre. Des voix semblent provenir des profondeurs.")
-        self.rooms.append(cave)
-        cottage = Room("Cottage", "un petit chalet pittoresque avec un toit de chaume. Une épaisse fumée verte sort de la cheminée.")
-        self.rooms.append(cottage)
-        swamp = Room("Swamp", "un marécage sombre et ténébreux. L'eau bouillonne, les abords sont vaseux.")
-        self.rooms.append(swamp)
-        castle = Room("Castle", "un énorme château fort avec des douves et un pont levis. Sur les tours, des flèches en or massif.")
-        self.rooms.append(castle)
+        chambre = Room("Chambre", "votre chambre.")
+        self.rooms.append(chambre)
+        penderie = Room("Penderie", "votre penderie.")
+        self.rooms.append(penderie)
+        couloir = Room("Couloir", "un couloir de votre château.")
+        self.rooms.append(couloir)
+        cuisine = Room("Cuisine", "la cuisine de votre château.")
+        self.rooms.append(cuisine)
+        bibliotheque = Room("Bibliothèque", "la bibliothèque du château.")
+        self.rooms.append(bibliotheque)
+        chateau = Room("Chateau", "la cour du château.")
+        self.rooms.append(chateau)
+        foret = Room("Forêt enchentée", "une forêt enchantée, peuplée d'animaux extraordianires.")
+        self.rooms.append(foret)
+        village = Room("Village", "un village paisible.")
+        self.rooms.append(village)
+        ruines = Room("Ruines", "les ruines d'un ancien temple.")
+        self.rooms.append(ruines)
+        pont = Room("Pont", "sur un ponton. Vous contemplez la mer à perte de vue.")
+        self.rooms.append(pont)
+        grotte = Room("Grotte", "une grotte sombre et sinueuse.")
+        self.rooms.append(grotte)
+        montagne = Room("Montagne", "les montagnes du royaume.")
+        self.rooms.append(montagne)
+        cristaux = Room("Cristaux", "une grotte de cristal.")
+        self.rooms.append(cristaux)
+        ciel = Room("Ciel", "les airs ! Vous vous dirigez en direction du repère du sorcier à dos de dragon.")
+        self.rooms.append(ciel)
+        repere = Room("Repère du sorcier", "le repère du sorcier...")
+        self.rooms.append(repere)
 
         # Create exits for rooms
 
-        forest.exits = {"N" : cave, "E" : None, "S" : castle, "O" : None}
-        tower.exits = {"N" : cottage, "E" : None, "S" : None, "O" : None}
-        cave.exits = {"N" : None, "E" : cottage, "S" : forest, "O" : None}
-        cottage.exits = {"N" : None, "E" : None, "S" : tower, "O" : cave}
-        swamp.exits = {"N" : tower, "E" : None, "S" : None, "O" : castle}
-        castle.exits = {"N" : forest, "E" : swamp, "S" : None, "O" : None}
+        chambre.exits = {"N" : None, "E" : penderie, "S" : None, "O" : None, "U" : None, "D" : couloir} 
+        penderie.exits = {"N" : None, "E" : None, "S" : None, "O" : chambre, "U" : None, "D" : None}
+        couloir.exits = {"N" : None, "E" : cuisine, "S" : chateau, "O" : bibliotheque, "U" : couloir, "D" : None}
+        cuisine.exits = {"N" : None, "E" : None, "S" : None, "O" : couloir, "U" : None, "D" : None}
+        bibliotheque.exits = {"N" : None, "E" : couloir, "S" : None, "O" : None, "U" : None, "D" : None}
+        chateau.exits = {"N" : couloir, "E" : None, "S" : foret, "O" : None, "U" : None, "D" : None}
+        foret.exits = {"N" : None, "E" : ruines, "S" : pont, "O" : village, "U" : None, "D" : None}
+        village.exits = {"N" : None, "E" : foret, "S" : None, "O" : None, "U" : None, "D" : None}
+        ruines.exits = {"N" : None, "E" : grotte, "S" : montagne, "O" : foret, "U" : None, "D" : None}
+        pont.exits = {"N" : foret, "E" : montagne, "S" : None, "O" : None, "U" : None, "D" : None}
+        ##ATTENTION : pas d'issue pour la grotte ! Par quel côté choisir pour retombé sur la fôret ?
+        ##Comme le personnage est prit au piège dans la grotte, pourquoi ne pas faire un sénario ou il ferme les yeux puis les rouvrent et se retrouve dans la forêt (transition). 
+        ### On pourrait demander à la personne d'utiliser la commende 'go ?' pour que celle-ci le ramène à la forêt.
+        grotte.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None,  "?": foret }
+        montagne.exits = {"N" : None, "E" : None, "S" : cristaux, "O" : None, "U" : None, "D" : None}
+        cristaux.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : ciel, "D" : None}
+        ciel.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : repere}
+        repere.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None}
 
         # Setup player and starting room
 
         self.player = Player(input("\nEntrez votre nom: "))
-        self.player.current_room = swamp
+        self.player.current_room = chambre 
 
     # Play the game
     def play(self):
