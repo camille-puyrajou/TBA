@@ -1,5 +1,6 @@
 # Define the Player class.
 class Player():
+
     """
     Represents the player in the game.
 
@@ -25,11 +26,44 @@ class Player():
     >>>     print("Movement failed!")
     The player successfully moved!
     """
-
+    
     # Define the constructor.
     def __init__(self, name):
         self.name = name
         self.current_room = None
+         # In-memory history of rooms visited (initially empty)
+        self.history = []
+
+    # Define the log_history method.
+    def log_history(self):
+        try:
+            room = self.current_room
+        except Exception:
+            room = None
+        self.history.append(room)    
+    
+    def get_history(self):
+        """
+        Retourne une chaîne représentant l'historique des pièces visitées par le joueur.
+        Exemple : 'Chambre -> Couloir -> Cuisine'
+        """
+        # Filtre les None éventuels et remplace par un token lisible
+        if not self.history:
+            return "Vous n'avez encore visité aucune pièce."
+
+        lines = ["Vous avez déjà visité les pièces suivantes:"]
+        for entry in self.history:
+            if entry is None:
+                label = 'Inconnu'
+            else:
+                # entry may be a Room instance or already a string
+                try:
+                    label = entry.name
+                except Exception:
+                    label = str(entry)
+            lines.append(f"    - {label}")
+        return "\n".join(lines)
+        
     
     # Define the move method.
     def move(self, direction):
@@ -40,12 +74,31 @@ class Player():
         if next_room is None:
             print("\nCe chemin n'est pas accessible !\n")
             return False
+        else :
+            # perform move
+            self.current_room = next_room
+            try:
+                print(self.current_room.get_long_description())
+            except Exception:
+                pass
+
+            # record movement (in-memory)
+            try:
+                self.log_history()
+            except Exception:
+                pass
+
+            # afficher l'historique mis à jour après chaque déplacement
+            try:
+                 print(self.get_history())
+            except Exception:
+                pass
+            
+            return True
         
 
         
-        # Set the current room to the next room.
-        self.current_room = next_room
-        print(self.current_room.get_long_description())
-        return True
-
     
+
+
+ 

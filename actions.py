@@ -66,7 +66,54 @@ class Actions:
         else:
             player.move(direction)
             return True
+    
+    def back (game, list_of_words, number_of_parameters):
+        """
+        Déplacer le joueur vers la pièce précédemment visitée dans son historique.
+        """
+        player = game.player
+        l = len(list_of_words)
+        # If the number of parameters is incorrect, print an error message and return False.
+        if l != number_of_parameters + 1:
+            command_word = list_of_words[0]
+            print(MSG0.format(command_word=command_word))
+            return False
+        # vérifier qu'il y a une pièce précédente dans l'historique
+        #
+        if len(player.history) < 2:
+            print("\nAucune pièce précédente dans l'historique.\n")
+            return False
+        
+        # Supprimer la pièce actuelle de l'historique (celle d'où l'on revient)
+        # Cela garantit que la pièce d'arrivée sera la nouvelle "dernière" de l'historique.
+        player.history.pop() # Retire la dernière pièce de l'historique
+        previous_room = player.history[-1]
+        # trouver la pièce précédente parmi les sorties de la pièce actuelle
+        player.current_room = previous_room
 
+        
+        if previous_room is None:
+            print("\nImpossible de retourner à la pièce précédente dans le jeu.\n")
+            player.history.append(game.player.current_room.name)
+            return False
+        
+        # déplacer le joueur vers la pièce précédente
+        player.current_room = previous_room
+                    
+        # Afficher la description de la nouvelle pièce (et donc ses sorties)
+  
+        print(game.player.current_room.get_long_description()) 
+        game.player.current_room.get_long_description()
+        
+        # Afficher l'historique mis à jour
+        try:
+            print(player.get_history())
+        except Exception:
+            print("Impossible d'afficher l'historique.")
+
+        return True
+    
+    
     def quit(game, list_of_words, number_of_parameters):
         """
         Quit the game.
@@ -144,4 +191,21 @@ class Actions:
         for command in game.commands.values():
             print("\t- " + str(command))
         print()
+        return True
+
+    def history(game, list_of_words, number_of_parameters):
+        """
+        Affiche l'historique des pièces visitées par le joueur.
+        """
+        l = len(list_of_words)
+        if l != number_of_parameters + 1:
+            command_word = list_of_words[0]
+            print(MSG0.format(command_word=command_word))
+            return False
+
+        player = game.player
+        try:
+            print(player.get_history())
+        except Exception:
+            print("Impossible d'afficher l'historique.")
         return True

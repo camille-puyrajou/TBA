@@ -6,7 +6,7 @@ from room import Room
 from player import Player
 from command import Command
 from actions import Actions
-
+ 
 class Game:
 
     # Constructor
@@ -27,6 +27,10 @@ class Game:
         self.commands["quit"] = quit
         go = Command("go", " <direction> : se déplacer dans une direction cardinale (N, E, S, O, U, D)", Actions.go, 1)
         self.commands["go"] = go
+        history = Command("history", " : afficher l'historique des pièces visitées", Actions.history, 0)
+        self.commands["history"] = history
+        back = Command("back", " : revenir à la pièce précédente", Actions.back, 0)
+        self.commands["back"] = back
         
         # Setup rooms
 
@@ -130,3 +134,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+ 
