@@ -30,6 +30,25 @@ class Player():
     def __init__(self, name):
         self.name = name
         self.current_room = None
+        self.history = []
+        self.inventory = {}
+        
+    def log_history(self):
+        try:
+            room = self.current_room
+        except Exception:
+            room = None
+        self.history.append(room)
+
+    def get_history(self):
+        if not self.history:
+            return "Vous n'avez encore visité aucune pièce."
+        
+        lines = ["Vous avez déjà visité les pièces suivantes :"]
+        for n in self.history:
+            room = n if n is not None else 'Inconnu'
+            lines.append(f"    - {room.name}")
+        return "\n".join(lines)
     
     # Define the move method.
     def move(self, direction):
@@ -38,12 +57,54 @@ class Player():
 
         # If the next room is None, print an error message and return False.
         if next_room is None:
-            print("\nAucune porte dans cette direction !\n")
+            print("\nCe chemin n'est pas accessible !\n")
             return False
-        
-        # Set the current room to the next room.
-        self.current_room = next_room
-        print(self.current_room.get_long_description())
-        return True
+        else:
+            # perform move
+            self.current_room = next_room
+            try:
+                print(self.current_room.get_long_description())
+            except Exception:
+                pass
 
-    
+             # afficher l'inventaire de la pièce actuelle
+            try:
+                print(self.current_room.get_inventory())
+            except Exception:
+                pass
+        
+            # record movement (in-memory)
+            try:
+                self.log_history()
+            except Exception:
+                pass
+
+            # afficher l'historique mis à jour après chaque déplacement
+            try:
+                print(self.get_history())
+            except Exception:
+                pass
+
+            try:
+                print("\n"+self.get_inventory())
+            except Exception:
+                pass
+
+            return True
+        
+    def inventory(self):
+        self.inventory = {}
+
+    def get_inventory(self):
+        """ 
+        Retourne l'inventaire du joueur.
+        """
+        if not self.inventory:
+            return "Votre inventaire est vide."
+        
+        else :
+            lines = ["Vous disposez des items suivants :"]
+            for n in self.inventory:
+                item = n if n is not None else 'Inconnu'
+                lines.append(f"    - {item.name} : {item.description}, ({item.weight} kg)")
+            return "\n".join(lines)
