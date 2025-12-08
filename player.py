@@ -33,6 +33,8 @@ class Player():
         self.current_room = None
          # In-memory history of rooms visited (initially empty)
         self.history = []
+        # Inventory of items (initially empty)
+        self.inventory = {}
 
     # Define the log_history method.
     def log_history(self):
@@ -64,7 +66,22 @@ class Player():
             lines.append(f"    - {label}")
         return "\n".join(lines)
         
-    
+    def inventory(self):
+        self.inventory = {}
+
+    def get_inventory(self):
+        """Retourne une chaîne représentant l'inventaire du joueur."""
+        if not self.inventory: 
+            return "Votre inventaire est vide."
+        
+        else: 
+            lines = ["Vous disposez des items suivants :"]
+            for n in self.inventory:
+                item = n if n is not None else 'Inconnu'
+                lines.append(f"    - {item.name} : {item.description}, ({item.weight} kg)")
+            return "\n".join(lines)   
+
+
     # Define the move method.
     def move(self, direction):
         # Get the next room from the exits dictionary of the current room.
@@ -94,8 +111,14 @@ class Player():
             except Exception:
                 pass
             
+            try:
+                print("\n"+self.get_inventory())
+            except Exception:
+                pass
+
             return True
         
+
 
         
     

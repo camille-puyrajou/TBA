@@ -3,9 +3,13 @@
 # Import modules
 
 from room import Room
+from item import Item
 from player import Player
 from command import Command
 from actions import Actions
+from item import Item
+
+
  
 class Game:
 
@@ -31,6 +35,8 @@ class Game:
         self.commands["history"] = history
         back = Command("back", " : revenir à la pièce précédente", Actions.back, 0)
         self.commands["back"] = back
+        inventory = Command("inventory", " : afficher l'inventaire du joueur", Actions.inventory, 0)
+        self.commands["inventory"] = inventory
         
         # Setup rooms
 
@@ -90,6 +96,12 @@ class Game:
 
         self.player = Player(input("\nEntrez votre nom: "))
         self.player.current_room = chambre 
+
+        # Set up objets in rooms
+        diary = Item("diary", "votre carnet relié en cuir, où repose votre tout dernier souvenir.", 0.5)
+        chambre.items.append(diary)
+        
+        
 
     # Play the game
     def play(self):
