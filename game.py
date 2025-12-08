@@ -3,11 +3,14 @@
 # Import modules
 
 from room import Room
+from item import Item
 from player import Player
 from command import Command
 from actions import Actions
 from item import Item
 
+
+ 
 class Game:
 
     # Constructor
@@ -80,7 +83,10 @@ class Game:
         village.exits = {"N" : None, "E" : foret, "S" : None, "O" : None, "U" : None, "D" : None}
         ruines.exits = {"N" : None, "E" : grotte, "S" : montagne, "O" : foret, "U" : None, "D" : None}
         pont.exits = {"N" : foret, "E" : montagne, "S" : None, "O" : None, "U" : None, "D" : None}
-        grotte.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None, "?" : foret}
+        ##ATTENTION : pas d'issue pour la grotte ! Par quel côté choisir pour retombé sur la fôret ?
+        ##Comme le personnage est prit au piège dans la grotte, pourquoi ne pas faire un sénario ou il ferme les yeux puis les rouvrent et se retrouve dans la forêt (transition). 
+        ### On pourrait demander à la personne d'utiliser la commende 'go ?' pour que celle-ci le ramène à la forêt.
+        grotte.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None,  "?": foret }
         montagne.exits = {"N" : None, "E" : None, "S" : cristaux, "O" : None, "U" : None, "D" : None}
         cristaux.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : ciel, "D" : None}
         ciel.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : repere}
@@ -90,6 +96,12 @@ class Game:
 
         self.player = Player(input("\nEntrez votre nom: "))
         self.player.current_room = chambre 
+
+        # Set up objets in rooms
+        diary = Item("diary", "votre carnet relié en cuir, où repose votre tout dernier souvenir.", 0.5)
+        chambre.items.append(diary)
+        
+        
 
     # Play the game
     def play(self):
@@ -134,3 +146,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+ 

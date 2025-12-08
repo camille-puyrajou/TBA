@@ -55,19 +55,21 @@ class Actions:
 
         # Get the direction from the list of words.
         direction = list_of_words[1]
-        # Normalize the direction to uppercase and take only the first character.
-        direction = direction.upper()[0]
+        # Take only the first letter and make it uppercase.
+        direction = direction.upper()[0] 
 
         # If the direction is not valid, print an error message and return False.
         if direction not in player.current_room.exits.keys():
-            print("\nCette direction n'existe pas ! Veuillez regarder les sorties suivantes : \n", player.current_room.get_exit_string(), "\n")
-        else :
-            # Move the player in the direction specified by the parameter.
+            print("\n Cette direction n'existe pas ! Veuillez utiliser une des directions suivantes :\n ", player.current_room.get_exit_string(), "\n")
+          
+        # Move the player in the direction specified by the parameter.
+        else:
             player.move(direction)
-
-    def back(game, list_of_words, number_of_parameters):
-        """ 
-        Déplacer le joueur vers la pièce précédemment visitée.
+            return True
+    
+    def back (game, list_of_words, number_of_parameters):
+        """
+        Déplacer le joueur vers la pièce précédemment visitée dans son historique.
         """
         player = game.player
         l = len(list_of_words)
@@ -76,34 +78,40 @@ class Actions:
             command_word = list_of_words[0]
             print(MSG0.format(command_word=command_word))
             return False
-        
-        # Check if there is a history to go back to
-        # Need at least two entries: [..., previous_room, current_room]
-        if len(player.history) < 2 :
-            print("\nAucune pièce précédente à visiter.\n")
+        # vérifier qu'il y a une pièce précédente dans l'historique
+        if len(player.history) < 2:
+            print("\nAucune pièce précédente dans l'historique.\n")
             return False
+        
+        # Supprimer la pièce actuelle de l'historique (celle d'où l'on revient)
+        # Cela garantit que la pièce d'arrivée sera la nouvelle "dernière" de l'historique.
+        player.history.pop() # Retire la dernière pièce de l'historique
+        previous_room = player.history[-1]
+        # trouver la pièce précédente parmi les sorties de la pièce actuelle
+        player.current_room = previous_room
 
-        player.history.pop()
-
-        prev_room = player.history[-1]
-
-        player.current_room = prev_room
-
-        if prev_room is None:
-            print("\nImpossible de retrouver la pièce précédente.\n")
+        
+        if previous_room is None:
+            print("\nImpossible de retourner à la pièce précédente dans le jeu.\n")
             player.history.append(game.player.current_room.name)
             return False
-
-        # Move the player to the previous room (n-1) and print description
-        player.current_room = prev_room
-        print(game.player.current_room.get_long_description())
+        
+        # déplacer le joueur vers la pièce précédente
+        player.current_room = previous_room
+                    
+        # Afficher la description de la nouvelle pièce (et donc ses sorties)
+        print(game.player.current_room.get_long_description()) 
         game.player.current_room.get_long_description()
-
-        try: 
+        
+        # Afficher l'historique mis à jour
+        try:
             print(player.get_history())
         except Exception:
             print("Impossible d'afficher l'historique.")
 
+        return True
+    
+    
     def quit(game, list_of_words, number_of_parameters):
         """
         Quit the game.
@@ -182,19 +190,17 @@ class Actions:
             print("\t- " + str(command))
         print()
         return True
-    
+
     def history(game, list_of_words, number_of_parameters):
         """
         Affiche l'historique des pièces visitées par le joueur.
-
         """
-
         l = len(list_of_words)
         if l != number_of_parameters + 1:
             command_word = list_of_words[0]
             print(MSG0.format(command_word=command_word))
             return False
-        
+
         player = game.player
         try:
             print(player.get_history())
@@ -205,23 +211,21 @@ class Actions:
     def inventory(game, list_of_words, number_of_parameters):
         """
         Affiche l'inventaire du joueur.
-
         """
-
         l = len(list_of_words)
         if l != number_of_parameters + 1:
             command_word = list_of_words[0]
             print(MSG0.format(command_word=command_word))
             return False
-        
+
         player = game.player
         try:
-            print("Vous disposez des items suivants :")
+            print("Vous disposez des items suivants:")
             if not player.inventory:
-                print("Votre inventaire est vide.")
+                print("\nVotre inventaire est vide.\n")
             else:
                 for item in player.inventory.values():
-                    print(f"  - {item} : {item.description}, ({item.weight} kg)")
+                    print(f"    - {item} : {item.description}, ({item.weight} kg)")
         except Exception:
             print("Impossible d'afficher l'inventaire.")
         return True
