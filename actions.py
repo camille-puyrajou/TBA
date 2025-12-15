@@ -284,16 +284,6 @@ class Actions:
             print(MSG1.format(command_word=command_word))
             return False
 
-        try:
-            from game import DEBUG
-        except Exception:
-            DEBUG = False
-        if DEBUG:
-            try:
-                print(f"DEBUG: Actions.take called with {list_of_words}")
-            except Exception:
-                pass
-
         player = game.player
         current_room = player.current_room
         item_name = list_of_words[1]
@@ -330,16 +320,6 @@ class Actions:
             print(MSG1.format(command_word=command_word))
             return False
 
-        try:
-            from game import DEBUG
-        except Exception:
-            DEBUG = False
-        if DEBUG:
-            try:
-                print(f"DEBUG: Actions.drop called with {list_of_words}")
-            except Exception:
-                pass
-
         player = game.player
         current_room = player.current_room
         item_name = list_of_words[1]
@@ -375,16 +355,6 @@ class Actions:
 
 
     def charge(game, list_of_words, number_of_parameters):
-        try:
-            from game import DEBUG
-        except Exception:
-            DEBUG = False
-        if DEBUG:
-            try:
-                print(f"DEBUG: Actions.charge called with {list_of_words}")
-            except Exception:
-                pass
-
         player = game.player
         if "beamer" not in player.inventory:
             print("\n Vous n'avez pas de beamer dans votre inventaire.\n")
@@ -399,16 +369,6 @@ class Actions:
 
 
     def fire(game, list_of_words, number_of_parameters):
-        try:
-            from game import DEBUG
-        except Exception:
-            DEBUG = False
-        if DEBUG:
-            try:
-                print(f"DEBUG: Actions.fire called with {list_of_words}")
-            except Exception:
-                pass
-
         player = game.player
         if "beamer" not in player.inventory:
             print("\n Vous n'avez pas de beamer dans votre inventaire.\n")
@@ -423,16 +383,6 @@ class Actions:
 
     
     def list_beamer(game, list_of_words, number_of_parameters):
-        try:
-            from game import DEBUG
-        except Exception:
-            DEBUG = False
-        if DEBUG:
-            try:
-                print(f"DEBUG: Actions.list_beamer called with {list_of_words}")
-            except Exception:
-                pass
-
         player = game.player
         if "beamer" not in player.inventory:
             print("\n Vous n'avez pas de beamer dans votre inventaire.\n")

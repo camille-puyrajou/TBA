@@ -1,3 +1,5 @@
+DEBUG = False
+
 # Define the Player class.
 class Player():
 
@@ -105,15 +107,8 @@ class Player():
         else:
             # perform move
             self.current_room = next_room
-            try:
-                from game import DEBUG
-            except Exception:
-                DEBUG = False
-            if DEBUG:
-                try:
-                    print(f"DEBUG: moved to {next_room.name}")
-                except Exception:
-                    pass
+            
+            print(f"DEBUG: moved to {next_room.name}")
             try:
                 # Après un déplacement, n'affiche que la description courte (sans la liste d'objets).
                 print(self.current_room.get_short_description())
