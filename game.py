@@ -13,7 +13,7 @@ import copy
 
 # Toggle debugging messages across modules. Import this variable from other modules
 # as: `from game import DEBUG` and guard debug prints with `if DEBUG: ...`
-DEBUG = True
+DEBUG = False
  
 class Game:
 
