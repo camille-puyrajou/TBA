@@ -1,5 +1,9 @@
 # Define the Room class.
 
+from item import Item
+from character import Character
+
+
 class Room:
     """
     Represents a location in the game world.
@@ -24,7 +28,7 @@ class Room:
         self.name = name
         self.description = description
         self.exits = {}
-        self.inventory = {}
+        self.item = {}
 
     
     # Define the get_exit method.
@@ -47,25 +51,54 @@ class Room:
 
     # Return a long description of this room including exits.
     def get_long_description(self):
-        desc = f"\nVous êtes dans {self.description}\n\n{self.get_exit_string()}\n"
-        if self.inventory:
-            desc += "\nVoici les objets présents dans la pièce:\n"
-            for it in self.item:
-                try:
-                    desc += f"    - {it.name} : {it.description}\n"
-                except Exception:
-                    desc += f"    - {str(it)}\n"
+        # La description longue inclut la description courte puis l'inventaire.
+        desc = self.get_short_description()
+        try:
+            desc += "\n" + self.get_inventory()
+        except Exception:
+            pass
         return desc
+
+
+    def get_short_description(self):
+        """
+        Retourne la description courte de la pièce (description + sorties),
+        sans afficher la liste des objets présents dans la pièce.
+        """
+        return f"\nVous êtes dans {self.description}\n\n{self.get_exit_string()}\n"
+
+
     
-    def inventory(self):
-        self.inventory = {}
-    
-    def get_inventory_room(self):
-        if not self.inventory:
+    def get_inventory(self):
+        # Sépare les objets et les personnages présents dans la pièce
+        if not self.item:
             return "Il n'y a rien ici."
-        
-        lines = ["Vous voyez les items suivants dans la pièce:"]
-        for n in self.inventory:
-            item = n if n is not None else 'Inconnu'
-            lines.append(f"    - {item.name}: {item.description}, (poids: {item.weight} kg)")
+
+        items = [obj for obj in self.item.values() if isinstance(obj, Item)]
+        characters = [obj for obj in self.item.values() if isinstance(obj, Character)]
+
+        if not items and not characters:
+            return "Il n'y a rien ici."
+
+        lines = ["On voit:"]
+
+        # Affiche d'abord les objets
+        for it in items:
+            try:
+                weight_str = f"{it.weight:g}"
+                lines.append(f"        - {it.name} : {it.description} ({weight_str} kg)")
+            except Exception:
+                lines.append(f"        - {str(it)}")
+
+        # Puis les personnages
+        for ch in characters:
+            try:
+                lines.append(f"        - {ch.name} : {ch.description}")
+            except Exception:
+                lines.append(f"        - {str(ch)}")
+
         return "\n".join(lines)
+        
+    def characters(self):
+        """Retourne la liste des personnages présents dans la pièce."""
+        return [obj for obj in self.item.values() if isinstance(obj, Character)]
