@@ -1,5 +1,7 @@
 import random
 
+DEBUG = True 
+
 class Character():
     def __init__(self, name, description, current_room, msgs):
         self.name = name
@@ -22,6 +24,8 @@ class Character():
         # Si pas de pièce connue, ne peut pas bouger
         if self.current_room is None:
             return False
+        if DEBUG:
+            print(f"[DEBUG] {self.name} tente de se déplacer depuis {self.current_room.name}")
 
         # Rassemble les pièces adjacentes valides
         adjacent = [r for r in self.current_room.exits.values() if r is not None]
