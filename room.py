@@ -24,7 +24,7 @@ class Room:
         self.name = name
         self.description = description
         self.exits = {}
-        self.inventory = {}
+        self.item = {}
 
     
     # Define the get_exit method.
@@ -47,25 +47,33 @@ class Room:
 
     # Return a long description of this room including exits.
     def get_long_description(self):
-        desc = f"\nVous êtes dans {self.description}\n\n{self.get_exit_string()}\n"
-        if self.inventory:
-            desc += "\nVoici les objets présents dans la pièce:\n"
-            for it in self.item:
-                try:
-                    desc += f"    - {it.name} : {it.description}\n"
-                except Exception:
-                    desc += f"    - {str(it)}\n"
+        # La description longue inclut la description courte puis l'inventaire.
+        desc = self.get_short_description()
+        try:
+            desc += "\n" + self.get_inventory()
+        except Exception:
+            pass
         return desc
+
+
+    def get_short_description(self):
+        """
+        Retourne la description courte de la pièce (description + sorties),
+        sans afficher la liste des objets présents dans la pièce.
+        """
+        return f"\nVous êtes dans {self.description}\n\n{self.get_exit_string()}\n"
+
+
     
-    def inventory(self):
-        self.inventory = {}
-    
-    def get_inventory_room(self):
-        if not self.inventory:
+    def get_inventory(self):
+        if not self.item:
             return "Il n'y a rien ici."
         
-        lines = ["Vous voyez les items suivants dans la pièce:"]
-        for n in self.inventory:
-            item = n if n is not None else 'Inconnu'
-            lines.append(f"    - {item.name}: {item.description}, (poids: {item.weight} kg)")
-        return "\n".join(lines)
+        else :
+            lines = ["Vous voyez les items suivants dans la pièce:"]
+            for i in self.item.values():
+                try:
+                    lines.append(f"    - {i.name} : {i.description} ({i.weight} kg)")
+                except Exception:
+                    lines.append(f"    - {str(i)}")
+            return "\n".join(lines)

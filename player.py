@@ -28,13 +28,15 @@ class Player():
     """
     
     # Define the constructor.
-    def __init__(self, name):
+    def __init__(self, name, max_weight=2.5):
         self.name = name
         self.current_room = None
          # In-memory history of rooms visited (initially empty)
         self.history = []
-        # Inventory of items (initially empty)
+        # Inventory of items (initially empty). Structure: dict mapping item.name -> Item
         self.inventory = {}
+        self.max_weight = max_weight
+
 
     # Define the log_history method.
     def log_history(self):
@@ -47,7 +49,9 @@ class Player():
     def get_history(self):
         """
         Retourne une chaîne représentant l'historique des pièces visitées par le joueur.
-        Exemple : 'Chambre -> Couloir -> Cuisine'
+        Exemple : '-Chambre 
+                   -Couloir 
+                   -Cuisine'
         """
         # Filtre les None éventuels et remplace par un token lisible
         if not self.history:
@@ -65,21 +69,19 @@ class Player():
                     label = str(entry)
             lines.append(f"    - {label}")
         return "\n".join(lines)
-        
-    def inventory(self):
-        self.inventory = {}
 
     def get_inventory(self):
         """Retourne une chaîne représentant l'inventaire du joueur."""
         if not self.inventory: 
             return "Votre inventaire est vide."
         
-        else: 
-            lines = ["Vous disposez des items suivants :"]
-            for n in self.inventory:
-                item = n if n is not None else 'Inconnu'
-                lines.append(f"    - {item.name} : {item.description}, ({item.weight} kg)")
-            return "\n".join(lines)   
+        lines = ["Vous disposez des items suivants :"]
+        for item in self.inventory.values():
+            try:
+                lines.append(f"    - {item.name} : {item.description} ({item.weight} kg)")
+            except Exception:
+                lines.append(f"    - {str(item)}")
+        return "\n".join(lines)   
 
 
     # Define the move method.
@@ -95,16 +97,12 @@ class Player():
             # perform move
             self.current_room = next_room
             try:
-                print(self.current_room.get_long_description())
+                # Après un déplacement, n'affiche que la description courte (sans la liste d'objets).
+                print(self.current_room.get_short_description())
             except Exception:
                 pass
 
-             # afficher l'inventaire de la pièce actuelle
-            try:
-                print(self.current_room.get_inventory())
-            except Exception:
-                pass
-        
+
             # record movement (in-memory)
             try:
                 self.log_history()
@@ -116,27 +114,16 @@ class Player():
                 print(self.get_history())
             except Exception:
                 pass
-
-            try:
-                print("\n"+self.get_inventory())
-            except Exception:
-                pass
-
+            # L'inventaire du joueur n'est plus affiché automatiquement après un déplacement.
+            # Il sera affiché uniquement via la commande 'look' ou 'inventory' explicite.
             return True
         
-    def inventory(self):
-        self.inventory = {}
-
-    def get_inventory(self):
-        """ 
-        Retourne l'inventaire du joueur.
-        """
-        if not self.inventory:
-            return "Votre inventaire est vide."
-        
-        else :
-            lines = ["Vous disposez des items suivants :"]
-            for n in self.inventory:
-                item = n if n is not None else 'Inconnu'
-                lines.append(f"    - {item.name} : {item.description}, ({item.weight} kg)")
-            return "\n".join(lines)
+    def current_weight(self):
+        """Calcule le poids total des objets dans l'inventaire du joueur."""
+        total_weight = 0.0
+        for item in self.inventory.values():
+            try:
+                total_weight += item.weight
+            except Exception:
+                pass
+        return total_weight
