@@ -38,6 +38,7 @@ class Player():
         # Inventory of items (initially empty). Structure: dict mapping item.name -> Item
         self.inventory = {}
         self.max_weight = max_weight
+        self.quest_manager = QuestManager(self)
 
 
     # Define the log_history method.
