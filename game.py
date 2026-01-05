@@ -8,7 +8,8 @@ from beamer import Beamer
 from player import Player
 from command import Command
 from actions import Actions
-from character import Character
+from character1 import Character
+from character2 import Character2
 import copy
 
 # Toggle debugging messages across modules. Import this variable from other modules
@@ -74,7 +75,7 @@ class Game:
         self.rooms.append(bibliotheque)
         chateau = Room("Chateau", "la cour du château.")
         self.rooms.append(chateau)
-        foret = Room("Forêt enchentée", "une forêt enchantée, peuplée d'animaux extraordianires.")
+        foret = Room("Forêt enchantée", "une forêt enchantée, peuplée d'animaux extraordianires.")
         self.rooms.append(foret)
         village = Room("Village", "un village paisible.")
         self.rooms.append(village)
@@ -181,41 +182,39 @@ class Game:
         repere.item[livre_de_sorts.name] = livre_de_sorts
 
         # Characters
-        garde = Character("Garde", "un garde vigilant protégeant le château.", chateau, ["Bonjour votre majesté !", "Tout est en ordre dans le château."])
+        garde = Character2("Garde", "un garde vigilant protégeant le château.", chateau, ["Bonjour votre majesté !", "Tout est en ordre dans le château."])
         chateau.item[garde.name] = garde
-        bibliothecaire = Character("Bibliothécaire", "un vieux bibliothécaire avec une longue barbe blanche.", bibliotheque, ["Chut ! C'est une bibliothèque.", "Avez-vous besoin d'aide pour trouver un livre ?"])
+        bibliothecaire = Character2("Bibliothécaire", "un vieux bibliothécaire avec une longue barbe blanche.", bibliotheque, ["Chut ! C'est une bibliothèque.", "Avez-vous besoin d'aide pour trouver un livre ?"])
         bibliotheque.item[bibliothecaire.name] = bibliothecaire
-        Cuisinière = Character ("Cuisinière", "Une femme âgée qui cuisine dans la cuisine.", cuisine, ["Bonjour ! Que voulez-vous manger aujourd'hui ?", "J'ai préparé un délicieux repas pour vous."])
+        cuisinière= Character2 ("Cuisinière", "Une femme âgée qui cuisine dans la cuisine.", cuisine, ["Bonjour ! Que voulez-vous manger aujourd'hui ?", "J'ai préparé un délicieux repas pour vous."])
+        cuisine.item[cuisinière.name]= cuisinière
         lutin = Character("Lutin", "un petit lutin espiègle avec un chapeau pointu.", foret, ["Bienvenue dans la forêt enchantée !", "Faites attention aux créatures magiques."])
         foret.item[lutin.name] = lutin
         Cinerio = Character("Cinerio", "un vieil homme sage avec une longue barbe grise.", repere, ["Vous avez fait un long voyage pour arriver ici.", "La sagesse est la clé de nombreux mystères."])
         repere.item[Cinerio.name] = Cinerio
-        Cylian = Character("Cylian", "un grand dragon rouge avec des écailles étincelantes.", ciel, ["Rohouuuuu ! Je suis le gardien des airs.", "Monte sur mon dos pour un voyage inoubliable !"])
+        Cylian = Character2("Cylian", "un grand dragon rouge avec des écailles étincelantes.", ciel, ["Rohouuuuu ! Je suis le gardien des airs.", "Monte sur mon dos pour un voyage inoubliable !"])
         ciel.item[Cylian.name] = Cylian
-        Zeph = Character("Zeph", "un sorcier mystérieux vêtu d'une robe sombre.", repere, ["Vous avez réussi à me trouver.", "Le véritable pouvoir réside en vous."])
+        Zeph = Character2("Zeph", "un sorcier mystérieux vêtu d'une robe sombre.", repere, ["Vous avez réussi à me trouver.", "Le véritable pouvoir réside en vous."])
         repere.item[Zeph.name] = Zeph
         Willow = Character("Willow", "une petite fée lumineuse avec des ailes scintillantes.", cristaux, ["Bienvenue dans la grotte de cristal.", "La magie est partout autour de nous."])
         cristaux.item[Willow.name] = Willow
-        Pêcheur = Character("Pêcheur", "un pêcheur robuste qui vend des bateaux.", pont, ["La mer est calme aujourd'hui.", "Vous voulez acheter un bateau ?"])
-        pont.item[Pêcheur.name] = Pêcheur
-        Elra = Character("Elra", "une jeune Herboriste .", village, ["Salut ! Je fournis toujours pleins de potion pour être prêt pour l'aventures.", "As-tu entendu parler des ruines anciennes ?"])
+        pêcheur = Character2("Pêcheur", "un pêcheur robuste qui vend des bateaux.", pont, ["La mer est calme aujourd'hui.", "Vous voulez acheter un bateau ?"])
+        pont.item[pêcheur.name] = pêcheur
+        Elra = Character2("Elra", "une jeune Herboriste .", village, ["Salut ! Je fournis toujours pleins de potion pour être prêt pour l'aventures.", "As-tu entendu parler des ruines anciennes ?"])
         village.item[Elra.name] = Elra
         Sully = Character("Sully", "un animal fantastique fidèle au joueur.", chambre, ["Je suis prêt pour l'aventure !", "N'oublie pas de me nourrir."])
         couloir.item[Sully.name] = Sully
-        Villageois1 = Character("Villageois1", "la piplette du village qui absorbe tout votrre temps.", village, ["Bonjour ! Comment se passe votre journée ?", "Avez-vous entendu parler des rumeurs du village ?"])
+        Villageois1 = Character2("Villageois1", "la piplette du village qui absorbe tout votrre temps.", village, ["Bonjour ! Comment se passe votre journée ?", "Avez-vous entendu parler des rumeurs du village ?"])
         village.item[Villageois1.name] = Villageois1
-        Villageois2 = Character("Villageois2", "L'historien du villa, il vous raccontera des histoires.", village, ["Salut ! J'ai une histoire incroyable à te raconter.", "Le village est plein de mystères."])
+        Villageois2 = Character2("Villageois2", "L'historien du villa, il vous raccontera des histoires.", village, ["Salut ! J'ai une histoire incroyable à te raconter.", "Le village est plein de mystères."])
         village.item[Villageois2.name] = Villageois2
-        Villageois3 = Character("Villageois3", "Le guide du village  qui aime aider les voyageurs.", village, ["Bonjour ! Comment puis-je vous aider aujourd'hui ?", "Le village est un endroit accueillant."])
+        Villageois3 = Character2("Villageois3", "Le guide du village  qui aime aider les voyageurs.", village, ["Bonjour ! Comment puis-je vous aider aujourd'hui ?", "Le village est un endroit accueillant."])
         village.item[Villageois3.name] = Villageois3
-        Villageois4 = Character("Villageois4", "une petite fille qui aime chanter des chansons.", village, ["Salut ! Voulez-vous entendre une chanson ?", "La musique est la langue universelle."])
+        Villageois4 = Character2("Villageois4", "une petite fille qui aime chanter des chansons.", village, ["Salut ! Voulez-vous entendre une chanson ?", "La musique est la langue universelle."])
         village.item[Villageois4.name] = Villageois4
-        Villageois5 = Character("Villageois5", "Le jardinier qui aime les plantes et la végetation .", village, ["Bonjour ! Avez-vous besoin de conseils sur le jardinage ?", "Les plantes sont mes amies."])
+        Villageois5 = Character2("Villageois5", "Le jardinier qui aime les plantes et la végetation .", village, ["Bonjour ! Avez-vous besoin de conseils sur le jardinage ?", "Les plantes sont mes amies."])
         village.item[Villageois5.name] = Villageois5
-
-
-        
-                                   
+   
 
     # Play the game
     def play(self):
@@ -308,10 +307,12 @@ class Game:
             for obj in list(room.item.values()):
                 # import local to avoid circular import issues
                 try:
-                    from character import Character
+                    from character1 import Character 
+                    from character2 import Character2
                 except Exception:
                     Character = None
-                if Character and isinstance(obj, Character):
+                    Character2 = None
+                if Character or Character2 and isinstance(obj, Character or Character2):
                     npcs.append(obj)
 
         for npc in npcs:

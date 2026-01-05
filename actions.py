@@ -15,7 +15,9 @@
 MSG0 = "\nLa commande '{command_word}' ne prend pas de paramètre.\n"
 # The MSG1 variable is used when the command takes 1 parameter.
 MSG1 = "\nLa commande '{command_word}' prend 1 seul paramètre.\n"
-from character import Character
+from character1 import Character 
+from character2 import Character2
+
 
 class Actions:
 
@@ -402,7 +404,7 @@ class Actions:
             return False
         player = game.player
         current_room = player.current_room
-        characters_in_room = [item for item in current_room.item.values() if isinstance(item, Character)]
+        characters_in_room = [item for item in current_room.item.values() if isinstance(item, (Character, Character2))]
         
         if not characters_in_room:
             print("Il n'y a personne ici.")
@@ -429,7 +431,7 @@ class Actions:
         character_name = list_of_words[1]
 
         # Vérifier si le personnage est présent dans la pièce
-        if character_name not in current_room.item or not isinstance(current_room.item[character_name], Character):
+        if character_name not in current_room.item or not isinstance(current_room.item[character_name], (Character, Character2)):
             print(f"\nLe personnage '{character_name}' n'est pas présent dans cette pièce.\n")
             return False
 

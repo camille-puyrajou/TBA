@@ -12,7 +12,7 @@ class Beamer(Item):
     def charge(self, player, slot_name):
         """Charge le beamer avec la pièce actuelle du joueur dans un slot nommé."""
         if len(self.slots) >= self.max_slots and slot_name not in self.slots:
-            print(f"\n⚠️ Le beamer est plein (max {self.max_slots} slots).\n")
+            print(f"\n Le beamer est plein (max {self.max_slots} slots).\n")
             return
         self.slots[slot_name] = player.current_room
         print(f"\n🔮 Le beamer est chargé dans le slot '{slot_name}' avec la pièce '{player.current_room.name}'.\n")
@@ -20,7 +20,7 @@ class Beamer(Item):
     def fire(self, player, slot_name):
         """Téléporte le joueur dans la pièce mémorisée dans le slot choisi."""
         if slot_name not in self.slots:
-            print(f"\n⚠️ Aucun slot '{slot_name}' n'est chargé.\n")
+            print(f"\n Aucun slot '{slot_name}' n'est chargé.\n")
         else:
             # Effectuer la téléportation et enregistrer l'historique comme pour un déplacement normal.
             player.current_room = self.slots[slot_name]

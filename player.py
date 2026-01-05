@@ -30,7 +30,7 @@ class Player():
     """
     
     # Define the constructor.
-    def __init__(self, name, max_weight=2.5):
+    def __init__(self, name, max_weight=3.0):
         self.name = name
         self.current_room = None
          # In-memory history of rooms visited (initially empty)

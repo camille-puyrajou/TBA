@@ -1,7 +1,8 @@
 # Define the Room class.
 
 from item import Item
-from character import Character
+from character1 import Character
+from character2 import Character2
 
 
 class Room:
@@ -75,7 +76,7 @@ class Room:
             return "Il n'y a rien ici."
 
         items = [obj for obj in self.item.values() if isinstance(obj, Item)]
-        characters = [obj for obj in self.item.values() if isinstance(obj, Character)]
+        characters = [obj for obj in self.item.values() if isinstance(obj, (Character, Character2))]
 
         if not items and not characters:
             return "Il n'y a rien ici."
@@ -101,4 +102,4 @@ class Room:
         
     def characters(self):
         """Retourne la liste des personnages présents dans la pièce."""
-        return [obj for obj in self.item.values() if isinstance(obj, Character)]
+        return [obj for obj in self.item.values() if isinstance(obj, (Character, Character2))]
