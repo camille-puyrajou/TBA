@@ -487,7 +487,7 @@ class Actions:
         return True
 
 
-    @staticmethod
+    
     def quest(game, list_of_words, number_of_parameters):
         """
         Show details about a specific quest.
@@ -543,7 +543,7 @@ class Actions:
         return True
 
 
-    @staticmethod
+    
     def activate(game, list_of_words, number_of_parameters):
         """
         Activate a specific quest.
@@ -596,7 +596,7 @@ class Actions:
         return False
 
 
-    @staticmethod
+    
     def rewards(game, list_of_words, number_of_parameters):
         """
         Display all rewards earned by the player.
