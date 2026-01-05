@@ -1,3 +1,6 @@
+from quests import QuestManager
+
+
 DEBUG = False
 
 # Define the Player class.
@@ -39,7 +42,8 @@ class Player():
         self.inventory = {}
         self.max_weight = max_weight
         self.quest_manager = QuestManager(self)
-
+        self.move_count = 0
+        self.rewards = []
 
     # Define the log_history method.
     def log_history(self):
@@ -131,7 +135,22 @@ class Player():
             # L'inventaire du joueur n'est plus affiché automatiquement après un déplacement.
             # Il sera affiché uniquement via la commande 'look' ou 'inventory' explicite.
             return True
+
+    def add_reward(self, reward):
+        if reward not in self.rewards:
+            self.rewards.append(reward)
+        print (f"Vous avez reçu une récompense : {reward}!")
+    
+    def show_rewards(self):
+        if not self.rewards:
+            return "Vous n'avez reçu aucune récompense pour le moment."
+        else:
+            lines = ["Récompenses reçues :"]
+            for r in self.rewards:
+                lines.append(f"    - {r}")
+            return "\n".join(lines)
         
+
     def current_weight(self):
         """Calcule le poids total des objets dans l'inventaire du joueur."""
         total_weight = 0.0
