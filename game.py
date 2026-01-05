@@ -61,6 +61,24 @@ class Game:
         self.commands["talk"] = talk
         list_beamer = Command("list_beamer", " : lister les slots du beamer", Actions.list_beamer, 0)
         self.commands["list_beamer"] = list_beamer
+
+        # questes commands
+        self.commands["quests"] = Command("quests"
+                                          , " : afficher la liste des quêtes"
+                                          , Actions.quests
+                                          , 0)
+        self.commands["quest"] = Command("quest"
+                                         , " <titre> : afficher les détails d'une quête"
+                                         , Actions.quest
+                                         , 1)
+        self.commands["activate"] = Command("activate"
+                                            , " <titre> : activer une quête"
+                                            , Actions.activate
+                                            , 1)
+        self.commands["rewards"] = Command("rewards"
+                                           , " : afficher vos récompenses"
+                                           , Actions.rewards
+                                           , 0)
         # Setup rooms
 
         chambre = Room("Chambre", "votre chambre.")
