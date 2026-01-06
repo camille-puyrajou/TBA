@@ -296,8 +296,15 @@ class Actions:
             print(f"\nL'objet '{item_name}' n'est pas présent dans cette pièce.\n")
             return False
 
-        # Prendre l'objet et l'ajouter à l'inventaire du joueur
+        # Prendre l'objet et vérifier s'il s'agit d'un personnage
         item = current_room.item.pop(item_name)
+        if isinstance(item, (Character, Character2)):
+            # Remettre l'objet dans la pièce car c'est un personnage
+            current_room.item[item_name] = item
+            print(f"\nVous ne pouvez pas prendre '{item_name}'. C'est un personnage, pas un objet.\n")
+            return False
+
+        # Ajouter l'objet à l'inventaire du joueur
         player.inventory[item_name] = item
         print(f"\nVous avez pris l'objet : '{item_name}'.\n")
         
