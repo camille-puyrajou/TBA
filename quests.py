@@ -1,5 +1,7 @@
 """ Define the Quest class"""
 
+from item import Item
+
 class Quest:
     """
     This class represents a quest in the game. A quest has a title, description,
@@ -128,10 +130,6 @@ class Quest:
         if not self.is_completed:
             self.is_completed = True
             print(f"\n🏆 Quête terminée: {self.title}")
-            if self.reward:
-                print(f"🎁 Récompense: {self.reward}")
-                if player:
-                    player.add_reward(self.reward)
             print()
 
 
@@ -163,7 +161,9 @@ class Quest:
         if not self.is_active:
             return f"❓ {self.title} (Non activée)"
         if self.is_completed:
-            return f"✅ {self.title} (Terminée)"
+            completed_count = len(self.completed_objectives)
+            total_count = len(self.objectives)
+            return f"✅ {self.title} ({completed_count}/{total_count} objectifs - Terminée)"
         completed_count = len(self.completed_objectives)
         total_count = len(self.objectives)
         return f"⏳ {self.title} ({completed_count}/{total_count} objectifs)"
@@ -429,6 +429,36 @@ class QuestManager:
         self.quests.append(quest)
 
 
+    def give_reward(self, quest):
+        """
+        Give the reward for a completed quest.
+        
+        Args:
+            quest (Quest): The completed quest.
+        """
+        if not quest.reward:
+            return
+            
+        print(f"🎁 Récompense: {quest.reward}")
+        
+        # Parse reward string and give appropriate reward
+        if quest.reward == "Clé des ruines":
+            self.player.inventory["clé_des_ruines"] = Item("clé_des_ruines", "Une clé ancienne ouvrant la porte des ruines.", 0.1)
+            print("La clé des ruines a été ajoutée à votre inventaire.")
+        elif quest.reward == "20 écus":
+            print("Vous recevez votre récompense en écus !")
+        elif quest.reward == "30 écus":
+            print("Vous recevez votre récompense en écus !")
+        elif quest.reward == "Connaissance ancestrale":
+            print("Vous avez acquis une connaissance ancestrale précieuse !")
+        elif quest.reward == "Accès au bateau":
+            print("Vous pouvez maintenant acheter un bateau chez le pêcheur ! Pour ce faire, \033[1mmontez\033[0m dans le bateau.")
+        elif quest.reward == "Victoire du royaume":
+            print("Le royaume est sauvé grâce à vous !")
+        elif quest.reward == "Victoire du royaume":
+            print("Le royaume est sauvé grâce à vous !")
+
+
     def activate_quest(self, quest_title):
         """
         Activate a quest by its title.
@@ -459,16 +489,23 @@ class QuestManager:
             if quest.title == quest_title and not quest.is_active:
                 quest.activate()
                 self.active_quests.append(quest)
+                
+                # Vérification spéciale pour la quête "Financer le voyage"
+                if quest_title == "Financer le voyage" and self.player and self.player.money >= 60:
+                    # Si le joueur a déjà 60 écus, compléter la quête immédiatement
+                    self.complete_objective("Gagner 60 écus", quest_title)
+                
                 return True
         return False
 
 
-    def complete_objective(self, objective_text):
+    def complete_objective(self, objective_text, quest_title=None):
         """
-        Complete an objective in any active quest.
+        Complete an objective in any active quest, or in a specific quest if quest_title is provided.
         
         Args:
             objective_text (str): The objective to complete.
+            quest_title (str, optional): The title of the specific quest to complete the objective in.
             
         Returns:
             bool: True if objective was found and completed, False otherwise.
@@ -493,13 +530,26 @@ class QuestManager:
         >>> manager.complete_objective("Do nothing")
         False
         """
-        for quest in self.active_quests:
-            if quest.complete_objective(objective_text):
+        if quest_title:
+            # Complete objective in specific quest
+            quest = self.get_quest_by_title(quest_title)
+            if quest and quest.is_active and quest.complete_objective(objective_text):
                 # Remove completed quests from active list
                 if quest.is_completed:
                     self.active_quests.remove(quest)
+                    self.give_reward(quest)
                 return True
-        return False
+            return False
+        else:
+            # Complete objective in any active quest
+            for quest in self.active_quests:
+                if quest.complete_objective(objective_text):
+                    # Remove completed quests from active list
+                    if quest.is_completed:
+                        self.active_quests.remove(quest)
+                        self.give_reward(quest)
+                    return True
+            return False
 
 
     def check_room_objectives(self, room_name):
@@ -649,6 +699,38 @@ class QuestManager:
         return self.quests
 
 
+    def is_active(self, quest_title):
+        """
+        Check if a quest is currently active.
+        
+        Args:
+            quest_title (str): The title of the quest to check.
+            
+        Returns:
+            bool: True if the quest is active, False otherwise.
+            
+        Examples:
+        
+        >>> manager = QuestManager()
+        >>> quest = Quest("Test Quest", "A test")
+        >>> manager.add_quest(quest)
+        >>> manager.is_active("Test Quest")
+        False
+        >>> manager.activate_quest("Test Quest")
+        <BLANKLINE>
+        🗡️  Nouvelle quête activée: Test Quest
+        📝 A test
+        <BLANKLINE>
+        True
+        >>> manager.is_active("Test Quest")
+        True
+        """
+        for quest in self.active_quests:
+            if quest.title == quest_title:
+                return True
+        return False
+
+
     def get_quest_by_title(self, title):
         """
         Get a quest by its title.
@@ -676,6 +758,34 @@ class QuestManager:
             if quest.title == title:
                 return quest
         return None
+
+
+    def is_active(self, quest_title):
+        """
+        Check if a quest is active.
+        
+        Args:
+            quest_title (str): The title of the quest.
+            
+        Returns:
+            bool: True if the quest is active, False otherwise.
+        """
+        quest = self.get_quest_by_title(quest_title)
+        return quest is not None and quest.is_active
+
+
+    def is_completed(self, quest_title):
+        """
+        Check if a quest is completed.
+        
+        Args:
+            quest_title (str): The title of the quest.
+            
+        Returns:
+            bool: True if the quest is completed, False otherwise.
+        """
+        quest = self.get_quest_by_title(quest_title)
+        return quest is not None and quest.is_completed
 
 
     def show_quests(self):

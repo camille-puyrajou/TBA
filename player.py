@@ -44,6 +44,10 @@ class Player():
         self.quest_manager = QuestManager(self)
         self.move_count = 0
         self.rewards = []
+        self.money = 0
+        self.talk_count = 0
+        self.hp = 100
+        self.max_hp = 100
 
     # Define the log_history method.
     def log_history(self):
@@ -79,15 +83,17 @@ class Player():
 
     def get_inventory(self):
         """Retourne une chaîne représentant l'inventaire du joueur."""
-        if not self.inventory: 
-            return "Votre inventaire est vide."
+        lines = [f"Vous avez {self.money} écus."]
         
-        lines = ["Vous disposez des items suivants :"]
-        for item in self.inventory.values():
-            try:
-                lines.append(f"    - {item.name} : {item.description} ({item.weight} kg)")
-            except Exception:
-                lines.append(f"    - {str(item)}")
+        if not self.inventory: 
+            lines.append("Votre inventaire est vide.")
+        else:
+            lines.append("Vous disposez des items suivants :")
+            for item in self.inventory.values():
+                try:
+                    lines.append(f"    - {item.name} : {item.description} ({item.weight} kg)")
+                except Exception:
+                    lines.append(f"    - {str(item)}")
         return "\n".join(lines)   
 
 
@@ -110,8 +116,33 @@ class Player():
             print("\nCe chemin n'est pas accessible !\n")
             return False
         else:
+            # Check if moving from Pont to Mer (costs 60 écus if player has "Accès au bateau" reward)
+            if self.current_room.name == "Pont" and next_room.name == "Mer":
+                # Check if player has completed "Financer le voyage" quest
+                if not self.quest_manager.is_completed("Financer le voyage"):
+                    print("\nVous n'avez pas accès au bateau. Vous devez d'abord financer le voyage (60 écus).\n")
+                    return False
+                
+                # Deduct 60 écus for the boat trip
+                if self.money >= 60:
+                    self.money -= 60
+                    print(f"\nVous payez 60 écus pour le voyage en bateau.")
+                    print(f"Il vous reste {self.money} écus.\n")
+                else:
+                    print(f"\nVous n'avez pas assez d'écus pour le voyage ! Il vous en faut 60, vous en avez {self.money}.\n")
+                    return False
+            
+            # Check if moving from Ruines to Montagne (requires "La Clé des Ruines" quest completion)
+            if self.current_room.name == "Ruines" and next_room.name == "Montagne":
+                # Check if player has completed "La Clé des Ruines" quest
+                if not self.quest_manager.is_completed("La Clé des Ruines"):
+                    print("\nLa porte des ruines est verrouillée. Vous avez besoin de la Clé des Ruines pour l'ouvrir.\n")
+                    print("Complétez la quête 'La Clé des Ruines' en trouvant les trois fragments.\n")
+                    return False
+            
             # perform move
             self.current_room = next_room
+            self.move_count += 1
             
             print(f"DEBUG: moved to {next_room.name}")
             try:
@@ -132,6 +163,14 @@ class Player():
                 print(self.get_history())
             except Exception:
                 pass
+            
+            # Check quest objectives
+            try:
+                self.quest_manager.check_room_objectives(next_room.name)
+                self.quest_manager.check_counter_objectives("Se déplacer", self.move_count)
+            except Exception:
+                pass
+            
             # L'inventaire du joueur n'est plus affiché automatiquement après un déplacement.
             # Il sera affiché uniquement via la commande 'look' ou 'inventory' explicite.
             return True
@@ -149,6 +188,10 @@ class Player():
             for r in self.rewards:
                 lines.append(f"    - {r}")
             return "\n".join(lines)
+        
+    def get_money(self):
+        return f"Vous avez {self.money} écus."
+
         
 
     def current_weight(self):

@@ -1,4 +1,4 @@
-# Description: The actions module.
+
 
 # The actions module contains the functions that are called when a command is executed.
 # Each function takes 3 parameters:
@@ -17,10 +17,20 @@ MSG0 = "\nLa commande '{command_word}' ne prend pas de paramètre.\n"
 MSG1 = "\nLa commande '{command_word}' prend 1 seul paramètre.\n"
 from character1 import Character 
 from character2 import Character2
+
+from item import Item
+import item
+import player
 from quests import Quest
+import random
+import time
 
 
 class Actions:
+    """
+    The Actions class contains static methods that define the actions
+    that can be performed in the game.
+    """
 
     def go(game, list_of_words, number_of_parameters):
         """
@@ -150,8 +160,11 @@ class Actions:
 
         >>> from game import Game
         >>> game = Game()
-        >>> game.setup()
-        >>> quit(game, ["quit"], 0)
+        >>> game.setup("TestPlayer")
+        >>> Actions.quit(game, ["quit"], 0)
+        <BLANKLINE>
+        Merci TestPlayer d'avoir joué. Au revoir.
+        <BLANKLINE>
         True
         >>> quit(game, ["quit", "N"], 0)
         False
@@ -159,9 +172,9 @@ class Actions:
         False
 
         """
-        l = len(list_of_words)
+        n = len(list_of_words)
         # If the number of parameters is incorrect, print an error message and return False.
-        if l != number_of_parameters + 1:
+        if n != number_of_parameters + 1:
             command_word = list_of_words[0]
             print(MSG0.format(command_word=command_word))
             return False
@@ -189,12 +202,28 @@ class Actions:
 
         >>> from game import Game
         >>> game = Game()
-        >>> game.setup()
-        >>> help(game, ["help"], 0)
+        >>> game.setup("TestPlayer")
+        >>> Actions.help(game, ["help"], 0) # doctest: +NORMALIZE_WHITESPACE
+        <BLANKLINE>
+        Voici les commandes disponibles:
+            - help : afficher cette aide
+            - quit : quitter le jeu
+            - go <direction> : se déplacer dans une direction cardinale (N, E, S, O)
+            - quests : afficher la liste des quêtes
+            - quest <titre> : afficher les détails d'une quête
+            - activate <titre> : activer une quête
+            - rewards : afficher vos récompenses
+        <BLANKLINE>
         True
-        >>> help(game, ["help", "N"], 0)
+        >>> Actions.help(game, ["help", "N"], 0)
+        <BLANKLINE>
+        La commande 'help' ne prend pas de paramètre.
+        <BLANKLINE>
         False
-        >>> help(game, ["help", "N", "E"], 0)
+        >>> Actions.help(game, ["help", "N", "E"], 0)
+        <BLANKLINE>
+        La commande 'help' ne prend pas de paramètre.
+        <BLANKLINE>
         False
 
         """
@@ -304,20 +333,77 @@ class Actions:
             print(f"\nVous ne pouvez pas prendre '{item_name}'. C'est un personnage, pas un objet.\n")
             return False
 
-        # Ajouter l'objet à l'inventaire du joueur
-        player.inventory[item_name] = item
-        print(f"\nVous avez pris l'objet : '{item_name}'.\n")
-        
         # Vérifier la capacité de poids
-        if player.current_weight() > player.max_weight:
-            # Retirer l'objet de l'inventaire du joueur et le remettre dans la pièce
-            player.inventory.pop(item_name)
+        if player.current_weight() + item.weight > player.max_weight:
+            # Remettre l'objet dans la pièce
             current_room.item[item_name] = item
             print(f"\nVous ne pouvez pas prendre '{item_name}'. Vous dépassez la capacité maximale de poids ({player.max_weight} kg).\n")
             return False
-        return True
-    
         
+        player.inventory[item_name] = item
+        # --- Validation des fragments pour la quête des ruines ---
+        if game.player.quest_manager.is_active("La Clé des Ruines"):
+            if item_name in ["objet_brisé", "inscription_effacée", "fragment_ancien"]:
+                print(f"Vous avez trouvé un fragment : {item_name} !")
+                
+                # Vérifier si c'est le dernier fragment avant de compléter
+                quest = game.player.quest_manager.get_quest_by_title("La Clé des Ruines")
+                nb_completed = len(quest.completed_objectives)
+                nb_total = len(quest.objectives)
+                
+                if item_name not in quest.completed_objectives and nb_completed == nb_total - 1:
+                    # C'est le dernier fragment, afficher les messages avant de compléter
+                    print("\nLes fragments s'assemblent dans vos mains...")
+                    print("Vous obtenez la Clé des Ruines !\n")
+                    game.player.inventory["clé_des_ruines"] = Item("clé_des_ruines", "Une clé ancienne ouvrant la porte des ruines.", 0.1)
+                
+                game.player.quest_manager.complete_objective(item_name, "La Clé des Ruines")
+
+        # Check for secrets quest objectives
+        secrets_items = ["livre de sorts", "corne de licorne", "artefact"]
+        if item_name in secrets_items:
+            game.player.quest_manager.complete_objective(f"Trouver {item_name}")
+
+            return True
+    
+        # --- Mini-quête : Collecte de plantes ---
+        if item_name in ["plante_magique", "plante_magique2"]:
+            print("\nVous avez trouvé une plante magique !")
+            print("Vous gagnez 30 écus.\n")
+            player.money += 30
+            # Vérifier si Financer le voyage peut être complétée
+            if game.player.quest_manager.is_active("Financer le voyage") and player.money >= 60 and not game.player.quest_manager.is_completed("Financer le voyage"):
+                game.player.quest_manager.complete_objective("Gagner 60 écus", "Financer le voyage")
+            if not game.player.quest_manager.is_active("Collecte de plantes"):
+                game.player.quest_manager.activate_quest("Collecte de plantes")
+            game.player.quest_manager.complete_objective("Récupérer plante", "Collecte de plantes")
+
+        # --- Mini-quête : Obtenir le beamer ---
+        if item_name == "beamer":
+            print("\nVous avez obtenu le beamer magique !")
+            print("Vous gagnez 30 écus.\n")
+            player.money += 30
+            # Vérifier si Financer le voyage peut être complétée
+            if game.player.quest_manager.is_active("Financer le voyage") and player.money >= 60 and not game.player.quest_manager.is_completed("Financer le voyage"):
+                game.player.quest_manager.complete_objective("Gagner 60 écus", "Financer le voyage")
+            if not game.player.quest_manager.is_active("Obtenir le beamer"):
+                game.player.quest_manager.activate_quest("Obtenir le beamer")
+            game.player.quest_manager.complete_objective("Prendre beamer", "Obtenir le beamer")
+
+
+        # --- Mini-quête : Souvenirs ---
+        if item_name in ["pierre_gravée", "coquillage_bleu", "plume_dorée"]:
+            if not game.player.quest_manager.is_active("Souvenirs du royaume"):
+                game.player.quest_manager.activate_quest("Souvenirs du royaume")
+            game.player.quest_manager.complete_objective(item_name, "Souvenirs du royaume")
+            
+            if game.player.quest_manager.is_completed("Souvenirs du royaume"):
+                player.money += 30
+                # Vérifier si Financer le voyage peut être complétée
+                if game.player.quest_manager.is_active("Financer le voyage") and player.money >= 60 and not game.player.quest_manager.is_completed("Financer le voyage"):
+                    game.player.quest_manager.complete_objective("Gagner 60 écus", "Financer le voyage")
+
+        return True
 
     
     def drop(game, list_of_words, number_of_parameters):
@@ -424,6 +510,93 @@ class Actions:
         
         return True   
         
+    def start_sorcerer_battle(game, player):
+        """
+        Lance un combat interactif contre le sorcier Zeph avec système de tours et de chance de toucher.
+        
+        Args:
+            game (Game): L'objet jeu
+            player (Player): Le joueur
+            
+        Returns:
+            bool: True si le joueur gagne, False s'il perd
+        """
+        # Initialisation des statistiques du sorcier
+        sorcerer_hp = 80
+        sorcerer_max_hp = 80
+        player_accuracy = 0.70  
+        sorcerer_accuracy = 0.55  
+        player_min_damage = 8
+        player_max_damage = 18
+        sorcerer_min_damage = 10
+        sorcerer_max_damage = 20
+        
+        # Réinitialiser les PV du joueur pour ce combat
+        player.hp = player.max_hp
+        
+        print(f"\n{'='*50}")
+        print(f"COMBAT - {player.name} vs Zeph le Sorcier")
+        print(f"{'='*50}\n")
+        print(f"🧙 Zeph : {sorcerer_hp}/{sorcerer_max_hp} PV")
+        print(f"⚔️  Vous : {player.hp}/{player.max_hp} PV\n")
+        
+        turn = 0
+        
+        while player.hp > 0 and sorcerer_hp > 0:
+            turn += 1
+            print(f"\n--- Tour {turn} ---\n")
+            
+            # TOUR DU JOUEUR
+            print("🎯 Votre tour !")
+            player_action = input("Attaquer (a) ou Défendre (d) ? : ").lower().strip()
+            
+            if player_action == "d":
+                # Défendre réduit les dégâts reçus
+                defense_bonus = 0.5
+                print("Vous vous préparez à la défense...\n")
+            else:
+                defense_bonus = 1.0
+                # Attaquer
+                if random.random() < player_accuracy:
+                    damage = random.randint(player_min_damage, player_max_damage)
+                    sorcerer_hp -= damage
+                    print(f"✅ Coup critique ! Vous infligez {damage} dégâts au sorcier !")
+                else:
+                    print(f"❌ Manqué ! Le sorcier esquive votre attaque.")
+            
+            print(f"🧙 Zeph : {max(0, sorcerer_hp)}/{sorcerer_max_hp} PV")
+            
+            if sorcerer_hp <= 0:
+                print(f"\n{'='*50}")
+                print("🎉 VICTOIRE ! Vous avez vaincu Zeph !")
+                print(f"{'='*50}\n")
+                player.hp = max(1, player.hp)  # Assurer que le joueur a au moins 1 PV
+                return True
+            
+            time.sleep(1)
+            
+            # TOUR DU SORCIER
+            print(f"\n🧙 Tour du sorcier !\n")
+            time.sleep(0.5)
+            
+            if random.random() < sorcerer_accuracy:
+                damage = random.randint(sorcerer_min_damage, sorcerer_max_damage)
+                damage = int(damage * defense_bonus)
+                player.hp -= damage
+                print(f"⚡ Le sorcier vous attaque ! {damage} dégâts reçus !")
+            else:
+                print(f"🛡️  Vous esquivez l'attaque du sorcier !")
+            
+            print(f"⚔️  Vous : {max(0, player.hp)}/{player.max_hp} PV")
+            
+            if player.hp <= 0:
+                print(f"\n{'='*50}")
+                print("💀 DÉFAITE ! Vous avez été vaincu...")
+                print(f"{'='*50}\n")
+                return False
+            
+            time.sleep(1)
+        
     def talk(game, list_of_words, number_of_parameters):
         """
         Permet au joueur de parler à un personnage dans la pièce actuelle.
@@ -447,8 +620,124 @@ class Actions:
         message = character.get_msg()
         if not message:
             print(f"\n{character.name} n'a rien à dire pour le moment.\n")
-        
-        return True
+
+        # Quête : Financer le voyage (acheter un bateau)
+        if character.name == "Pêcheur":
+            # Si la quête n'est pas encore active
+            if not game.player.quest_manager.is_active("Financer le voyage"):
+                print("\nPêcheur : Si tu veux prendre la mer, cela va coûter 60 écus.")
+                print("Nouvelle quête activée : Financer le voyage.\n")
+                game.player.quest_manager.activate_quest("Financer le voyage")
+                return True
+            
+            # Si la quête est active mais pas assez d'argent
+            if game.player.money < 60:
+                print("\nPêcheur : Tu n'as pas encore assez d'écus.")
+                return True
+
+            # Si le joueur a assez d'argent → compléter la quête
+            if not game.player.quest_manager.is_completed("Financer le voyage"):
+                game.player.quest_manager.complete_objective("Gagner 60 écus", "Financer le voyage")
+                print("\nPêcheur : Excellent ! Tu as assez d'écus. Bienvenue à bord moussaillon !")
+                print("Vous avez maintenant accès au bateau.\n")
+                return True
+            
+            # Si la quête est déjà complétée
+            print("\nPêcheur : Bon voyage matelot !")
+            return True
+
+        # --- Quête : La Clé des Ruines --- (Esprit)
+        if character.name == "Esprit":
+            if not game.player.quest_manager.is_active("La Clé des Ruines"):
+                print("\nL'esprit murmure : 'La porte ne s'ouvrira qu'avec trois fragments...'")
+                print("Nouvelle quête activée : La Clé des Ruines.\n")
+                game.player.quest_manager.activate_quest("La Clé des Ruines")
+                return True
+            
+        # Si la quête est active, vérifier les fragments
+            if game.player.quest_manager.is_active("La Clé des Ruines"):
+                quest = game.player.quest_manager.get_quest_by_title("La Clé des Ruines")
+                completed_count = len(quest.completed_objectives)
+                total_count = len(quest.objectives)
+                if completed_count < total_count:
+                    missing = [obj for obj in quest.objectives if obj not in quest.completed_objectives]
+                    print(f"\nL'esprit dit : 'Il te manque encore les fragments suivants : {', '.join(missing)}.'\n")
+                    return True
+                # Si tous les fragments sont collectés
+                print("\nL'esprit sourit : 'Tu as rassemblé tous les fragments. La porte s'ouvre pour toi...'")
+                print("Vous obtenez la Clé des Ruines !\n")
+                game.player.inventory["clé_des_ruines"] = Item("clé_des_ruines", "Une clé ancienne ouvrant la porte des ruines.", 0.1)
+                game.player.quest_manager.complete_quest("La Clé des Ruines")
+                return True
+
+        # --- Quête : Le Secret du Sorcier --- (Zeph)
+        if character.name == "Zeph":
+            if not game.player.quest_manager.is_active("Le Secret du Sorcier"):
+                print("\nZeph vous regarde avec un sourire énigmatique...")
+                print("Zeph : Ainsi, tu as trouvé mon repaire. Mais connais-tu vraiment mon secret ?\n")
+                game.player.quest_manager.activate_quest("Le Secret du Sorcier")
+
+
+        # --- Mini-quête : Parler à 5 PNJ ---
+        if not hasattr(player, "talk_count"):
+            player.talk_count = 0
+
+        player.talk_count += 1
+        if player.talk_count == 5:
+            print("\nVous avez parlé à 5 personnes !")
+            print("Vous gagnez 20 écus.\n")
+            player.money += 20
+            # Vérifier si Financer le voyage peut être complétée
+            if game.player.quest_manager.is_active("Financer le voyage") and player.money >= 60 and not game.player.quest_manager.is_completed("Financer le voyage"):
+                game.player.quest_manager.complete_objective("Gagner 60 écus", "Financer le voyage")
+            game.player.quest_manager.complete_objective("Parler à 5 PNJ", "Rencontrer les habitants")
+
+
+        # --- Combat contre le sorcier Zeph ---
+        if character.name == "Zeph":
+            print("\nLe sorcier vous fixe intensément...")
+            print("Une aura sombre vous entoure... Le combat commence !\n")
+            choix = input("Voulez-vous combattre (oui/non) : ").lower()
+            # --- Victoire/Défaite au combat ---
+            if choix == "oui":
+                # Lancer le combat interactif
+                player_won = Actions.start_sorcerer_battle(game, player)
+                
+                if player_won:
+                    print("Vous avez découvert son secret : il cherchait à protéger le royaume des vraies menaces !")
+                    
+                    # Complete the sorcerer secret quest
+                    game.player.quest_manager.complete_objective("Découvrir le secret de Zeph", "Le Secret du Sorcier")
+                    
+                    # Complete main quest objectives
+                    game.player.quest_manager.complete_objective("Atteindre le repère du sorcier", "Vaincre le Sorcier")
+                    game.player.quest_manager.complete_objective("Vaincre le sorcier", "Vaincre le Sorcier")
+                    
+                    # Check if main quest is completed and end game
+                    if game.player.quest_manager.is_completed("Vaincre le Sorcier"):
+                        print("\n 🎉 FÉLICITATIONS ! Vous avez vaincu le sorcier et sauvé le royaume !")
+                        print("Vous êtes téléporté devant le château en héros...\n")
+                        
+                        # Find the Chateau room and teleport player there
+                        for room in game.rooms:
+                            if room.name == "Chateau":
+                                game.player.current_room = room
+                                break
+                        
+                        print("\n===== VICTOIRE ! =====\n")
+                        game.finished = True
+                else:
+                    print("\n===== GAME OVER =====\n")
+                    game.finished = True
+
+            # --- Refus du combat ---
+            else:
+                print("\nVous refusez le combat...")
+                print("Le sorcier lève sa main... Une explosion vous frappe de plein fouet !")
+                print("\n===== GAME OVER =====\n")
+                game.finished = True
+
+            return True
         
     def quests(game, list_of_words, number_of_parameters):
         """
@@ -640,5 +929,5 @@ class Actions:
             return False
 
         # Show all rewards
-        game.player.show_rewards()
+        print(game.player.show_rewards())
         return True

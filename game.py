@@ -108,7 +108,7 @@ class Game:
         self.rooms.append(mer)
         montagne = Room("Montagne", "les montagnes du royaume.")
         self.rooms.append(montagne)
-        cristaux = Room("Cristaux", "une grotte de cristal.")
+        cristaux = Room("Cristaux", "une grotte de cristal. Un dragon apparaît devant vous. \033[1mMontez\033[0m sur son dos !")
         self.rooms.append(cristaux)
         ciel = Room("Ciel", "les airs ! Vous vous dirigez en direction du repère du sorcier à dos de dragon.")
         self.rooms.append(ciel)
@@ -145,8 +145,8 @@ class Game:
         Le_jardin.exits = {"N" : village, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None}
         L_épicerie.exits ={"N" : None, "E" : None, "S" : village, "O" : None, "U" : None, "D" : None}
         Maison_du_sage.exits = {"N" : None, "E" : village, "S" : None, "O" : None, "U" : None, "D" : None}
-        ruines.exits = {"N" : None, "E" : grotte, "S" : montagne, "O" : foret, "U" : None, "D" : None}
-        pont.exits = {"N" : foret, "E" : None, "S" : None, "O" : None, "U" : mer, "D" : None}
+        ruines.exits = {"N" : None, "E" : grotte, "S" : montagne, "O" : fontaine, "U" : None, "D" : None}
+        pont.exits = {"N" : fontaine, "E" : None, "S" : None, "O" : None, "U" : mer, "D" : None}
         ##Comme le personnage est prit au piège dans la grotte, pourquoi ne pas faire un sénario ou il ferme les yeux puis les rouvrent et se retrouve dans la forêt (transition). 
         ### On pourrait demander à la personne d'utiliser la commende 'go ?' pour que celle-ci le ramène à la forêt.
         grotte.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None,  "?": foret }
@@ -168,6 +168,12 @@ class Game:
 
         self.player = Player(input("\nEntrez votre nom: "))
         self.player.current_room = chambre 
+
+        # Setup all quests
+        self._set_quests()
+        
+        # Activate main quest at start
+        self.player.quest_manager.activate_quest("Vaincre le Sorcier")
 
         # Set up objets in rooms
         diary = Item("diary", "votre carnet relié en cuir. ", 0.7)
@@ -199,6 +205,25 @@ class Game:
         foret.item[corne_de_licorne.name] = corne_de_licorne
         livre_de_sorts = Item("livre de sorts", "un livre de sorts magiques.", 1.5)
         repere.item[livre_de_sorts.name] = livre_de_sorts
+        objet_brise = Item("objet_brisé", "un objet ancien brisé, fait de pierre et de métal.", 1.0)
+        inscription_effacee = Item("inscription_effacée", "une pierre avec une inscription effacée.", 0.3)
+        fragment_ancien = Item("fragment_ancien", "un fragment ancien marqué de runes mystiques.", 0.5)
+        foret.item[objet_brise.name] = objet_brise
+        village.item[inscription_effacee.name] = inscription_effacee
+        foret.item[fragment_ancien.name] = fragment_ancien
+        # --- Plantes magiques ---
+        plante_magique1 = Item("plante_magique", "Une plante rare aux propriétés curatives.", 0.2)
+        plante_magique2 = Item("plante_magique2", "Une autre plante rare aux propriétés curatives.", 0.2)
+        foret.item[plante_magique1.name] = plante_magique1
+        Le_jardin.item[plante_magique2.name] = plante_magique2
+        # --- Souvenirs du royaume ---
+        souvenir1 = Item("pierre_gravée", "Une pierre gravée d'un symbole ancien.", 0.3)
+        souvenir2 = Item("coquillage_bleu", "Un coquillage bleu brillant provenant de la mer.", 0.1)
+        souvenir3 = Item("plume_dorée", "Une plume dorée provenant d'un oiseau légendaire.", 0.1)
+        # Placement des souvenirs
+        ruines.item[souvenir1.name] = souvenir1
+        pont.item[souvenir2.name] = souvenir2
+        village.item[souvenir3.name] = souvenir3
 
         # Characters
         garde = Character2("Garde", "un garde vigilant protégeant le château.", chateau, ["Bonjour votre majesté !", "Tout est en ordre dans le château."])
@@ -209,64 +234,109 @@ class Game:
         cuisine.item[cuisinière.name]= cuisinière
         lutin = Character("Lutin", "un petit lutin espiègle avec un chapeau pointu.", foret, ["Bienvenue dans la forêt enchantée !", "Faites attention aux créatures magiques."])
         foret.item[lutin.name] = lutin
-        Cinerio = Character("Cinerio", "un vieil homme sage avec une longue barbe grise.", repere, ["Vous avez fait un long voyage pour arriver ici.", "La sagesse est la clé de nombreux mystères."])
-        repere.item[Cinerio.name] = Cinerio
+        le_sage = Character("Le_sage", "un vieil homme sage avec une longue barbe grise.", Maison_du_sage, ["Vous avez fait un long voyage pour arriver ici.", "La sagesse est la clé de nombreux mystères."])
+        Maison_du_sage.item[le_sage.name] = le_sage
         Cylian = Character2("Cylian", "un grand dragon rouge avec des écailles étincelantes.", ciel, ["Rohouuuuu ! Je suis le gardien des airs.", "Monte sur mon dos pour un voyage inoubliable !"])
         ciel.item[Cylian.name] = Cylian
-        Zeph = Character2("Zeph", "un sorcier mystérieux vêtu d'une robe sombre.", repere, ["Vous avez réussi à me trouver.", "Le véritable pouvoir réside en vous."])
-        repere.item[Zeph.name] = Zeph
+        Zeph = Character2("Zeph", "un sorcier mystérieux vêtu d'une robe sombre.", salle_de_rituel, ["Vous avez réussi à me trouver.", "Le véritable pouvoir réside en vous."])
+        salle_de_rituel.item[Zeph.name] = Zeph
         Willow = Character("Willow", "une petite fée lumineuse avec des ailes scintillantes.", cristaux, ["Bienvenue dans la grotte de cristal.", "La magie est partout autour de nous."])
         cristaux.item[Willow.name] = Willow
         pêcheur = Character2("Pêcheur", "un pêcheur robuste qui vend des bateaux.", pont, ["La mer est calme aujourd'hui.", "Vous voulez acheter un bateau ?"])
         pont.item[pêcheur.name] = pêcheur
-        Elra = Character2("Elra", "une jeune Herboriste .", village, ["Salut ! Je fournis toujours pleins de potion pour être prêt pour l'aventures.", "As-tu entendu parler des ruines anciennes ?"])
+        Elra = Character2("Elra", "une jeune Herboriste.", village, ["Salut ! Je fournis toujours pleins de potion pour être prêt pour l'aventures.", "As-tu entendu parler des ruines anciennes ?"])
         village.item[Elra.name] = Elra
         Sully = Character("Sully", "un animal fantastique fidèle au joueur.", chambre, ["Je suis prêt pour l'aventure !", "N'oublie pas de me nourrir."])
         couloir.item[Sully.name] = Sully
-        Villageois1 = Character2("Villageois1", "la piplette du village qui absorbe tout votrre temps.", village, ["Bonjour ! Comment se passe votre journée ?", "Avez-vous entendu parler des rumeurs du village ?"])
+        Villageois1 = Character2("Villageois1", "la piplette du village qui absorbe tout votre temps.", village, ["Bonjour ! Comment se passe votre journée ?", "Avez-vous entendu parler des rumeurs du village ?"])
         village.item[Villageois1.name] = Villageois1
-        Villageois2 = Character2("Villageois2", "L'historien du villa, il vous raccontera des histoires.", village, ["Salut ! J'ai une histoire incroyable à te raconter.", "Le village est plein de mystères."])
+        Villageois2 = Character2("Villageois2", "L'historien du village, il vous raccontera des histoires.", village, ["Salut ! J'ai une histoire incroyable à te raconter.", "Le village est plein de mystères."])
         village.item[Villageois2.name] = Villageois2
         Villageois3 = Character2("Villageois3", "Le guide du village  qui aime aider les voyageurs.", village, ["Bonjour ! Comment puis-je vous aider aujourd'hui ?", "Le village est un endroit accueillant."])
         village.item[Villageois3.name] = Villageois3
         Villageois4 = Character2("Villageois4", "une petite fille qui aime chanter des chansons.", village, ["Salut ! Voulez-vous entendre une chanson ?", "La musique est la langue universelle."])
         village.item[Villageois4.name] = Villageois4
-        Villageois5 = Character2("Villageois5", "Le jardinier qui aime les plantes et la végetation .", village, ["Bonjour ! Avez-vous besoin de conseils sur le jardinage ?", "Les plantes sont mes amies."])
+        Villageois5 = Character2("Villageois5", "Le jardinier qui aime les plantes et la végetation.", village, ["Bonjour ! Avez-vous besoin de conseils sur le jardinage ?", "Les plantes sont mes amies."])
         village.item[Villageois5.name] = Villageois5
-   
-    def _setup_quests(self):
+        esprit = Character2("Esprit", "un esprit ancien qui hante les ruines.", ruines,["Pour ouvrir la porte sacrée, trouve les trois fragments perdus..."])
+        ruines.item[esprit.name] = esprit
+
+    def _set_quests (self):   
         """Initialize all quests."""
-        exploration_quest = Quest(
-            title="Grand Explorateur",
-            description="Explorez tous les lieux de ce monde mystérieux.",
-            objectives=["Visiter Forest"
-                        , "Visiter Tower"
-                        , "Visiter Cave"
-                        , "Visiter Cottage"
-                        , "Visiter Castle"],
-            reward="Titre de Grand Explorateur"
+        
+        # Main quest
+        main_quest = Quest(
+        title="Vaincre le Sorcier",
+        description="Affrontez le sorcier maléfique et mettez fin à son règne.",
+        objectives=["Atteindre le repère du sorcier", "Vaincre le sorcier"],
+        reward="Victoire du royaume"
         )
-
-        travel_quest = Quest(
-            title="Grand Voyageur",
-            description="Déplacez-vous 10 fois entre les lieux.",
-            objectives=["Se déplacer 10 fois"],
-            reward="Bottes de voyageur"
+        self.player.quest_manager.add_quest(main_quest)
+        
+        # Money quest
+        money_quest = Quest(
+        title="Financer le voyage",
+        description="Gagnez assez d'écus pour acheter un bateau.",
+        objectives=["Gagner 60 écus"],
+        reward="Accès au bateau"
         )
-
-        discovery_quest = Quest(
-            title="Découvreur de Secrets",
-            description="Découvrez les trois lieux les plus mystérieux.",
-            objectives=["Visiter Cave"
-                        , "Visiter Tower"
-                        , "Visiter Castle"],
-            reward="Clé dorée"
+        self.player.quest_manager.add_quest(money_quest)
+        
+        # Sorcerer secret quest (conditional - appears when talking to Zeph)
+        sorcerer_secret_quest = Quest(
+        title="Le Secret du Sorcier",
+        description="Découvrez le secret caché du sorcier Zeph.",
+        objectives=["Découvrir le secret de Zeph"],
+        reward="Connaissance ancestrale"
         )
+        self.player.quest_manager.add_quest(sorcerer_secret_quest)
 
-        # Add quests to player's quest manager
-        self.player.quest_manager.add_quest(exploration_quest)
-        self.player.quest_manager.add_quest(travel_quest)
-        self.player.quest_manager.add_quest(discovery_quest)
+        # Ruins quest
+        ruins_quest = Quest(
+        title="La Clé des Ruines",
+        description="Trouvez les trois fragments nécessaires pour ouvrir la porte des ruines.",
+        objectives=["objet_brisé", "inscription_effacée", "fragment_ancien"],
+        reward="Clé des ruines"
+        )
+        self.player.quest_manager.add_quest(ruins_quest)
+
+       # --- Mini-quête : Rencontrer les habitants ---
+        talk_quest = Quest(
+        title="Rencontrer les habitants",
+        description="Parlez à 5 personnes du royaume.",
+        objectives=["Parler à 5 PNJ"],
+        reward="20 écus"
+        )
+        self.player.quest_manager.add_quest(talk_quest)
+
+        # --- Mini-quête : Collecte de plantes ---
+        plants_quest = Quest(
+            title="Collecte de plantes",
+            description="Récupérez une plante magique dans la nature.",
+            objectives=["Récupérer plante"],
+            reward="30 écus"
+        )
+        self.player.quest_manager.add_quest(plants_quest)
+
+        # --- Mini-quête : Obtenir le beamer ---
+        beamer_quest = Quest(
+            title="Obtenir le beamer",
+            description="Trouvez et prenez le beamer magique.",
+            objectives=["Prendre beamer"],
+            reward="30 écus"
+        )
+        self.player.quest_manager.add_quest(beamer_quest)
+
+        # --- Mini-quête : Souvenirs ---
+        souvenir_quest = Quest(
+            title="Souvenirs du royaume",
+            description="Trouvez trois objets souvenirs.",
+            objectives=["pierre_gravée", "coquillage_bleu", "plume_dorée"],
+            reward="30 écus"
+        )
+        self.player.quest_manager.add_quest(souvenir_quest)
+
+
 
     # Play the game
     def play(self):
