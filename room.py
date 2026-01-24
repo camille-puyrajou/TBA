@@ -25,9 +25,10 @@ class Room:
     get_long_description(): Returns a full description of the room, including its text description and the list of exits.
     """
     # Define the constructor. 
-    def __init__(self, name, description):
+    def __init__(self, name, description, image):
         self.name = name
         self.description = description
+        self.image = image  # Path to image file (PNG/JPG) for this room
         self.exits = {}
         self.item = {}
 

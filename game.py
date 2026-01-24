@@ -1,7 +1,5 @@
 # Description: Game class
-
 # Import modules
-
 from room import Room
 from item import Item
 from beamer import Beamer
@@ -12,6 +10,12 @@ from character1 import Character
 from character2 import Character2
 from quests import Quest
 import copy
+from pathlib import Path
+import sys
+import time
+import tkinter as tk
+from tkinter import ttk, simpledialog
+
 
 # Toggle debugging messages across modules. Import this variable from other modules
 # as: `from game import DEBUG` and guard debug prints with `if DEBUG: ...`
@@ -26,9 +30,10 @@ class Game:
         self.commands = {}
         self.player = None
         self.history = []
+        self.gui = None  # Reference to GUI window (None in CLI mode)
     
     # Setup the game
-    def setup(self):
+    def setup(self, player_name=None):
 
         # Setup commands
 
@@ -82,53 +87,53 @@ class Game:
                                            , 0)
         # Setup rooms
 
-        chambre = Room("Chambre", "votre chambre.")
+        chambre = Room("Chambre", "votre chambre.", image = "chambre.png")
         self.rooms.append(chambre)
-        penderie = Room("Penderie", "votre penderie.")
+        penderie = Room("Penderie", "votre penderie.", image = "penderie.png")
         self.rooms.append(penderie)
-        couloir = Room("Couloir", "un couloir de votre château.")
+        couloir = Room("Couloir", "un couloir de votre château.", image = "couloir.png")
         self.rooms.append(couloir)
-        cuisine = Room("Cuisine", "la cuisine de votre château.")
+        cuisine = Room("Cuisine", "la cuisine de votre château.", image = "cuisine.png")
         self.rooms.append(cuisine)
-        bibliotheque = Room("Bibliothèque", "la bibliothèque du château.")
+        bibliotheque = Room("Bibliothèque", "la bibliothèque du château.", image = "bibliotheque.png")
         self.rooms.append(bibliotheque)
-        chateau = Room("Chateau", "la cour du château.")
+        chateau = Room("Chateau", "la cour du château.", image = "chateau.png")
         self.rooms.append(chateau)
-        foret = Room("Forêt enchantée", "une forêt enchantée, peuplée d'animaux extraordianires.")
+        foret = Room("Forêt enchantée", "une forêt enchantée, peuplée d'animaux extraordianires.", image = "foret.png")
         self.rooms.append(foret)
-        village = Room("Village", "un village paisible.")
+        village = Room("Village", "un village paisible.", image = "village.png")
         self.rooms.append(village)
-        ruines = Room("Ruines", "les ruines d'un ancien temple.")
+        ruines = Room("Ruines", "les ruines d'un ancien temple.", image = "ruines.png")
         self.rooms.append(ruines)
-        pont = Room("Pont", "sur un ponton. Vous contemplez la mer à perte de vue.")
+        pont = Room("Pont", "sur un ponton. Vous contemplez la mer à perte de vue.", image = "pont.png")
         self.rooms.append(pont)
-        grotte = Room("Grotte", "une grotte sombre et sinueuse.")
+        grotte = Room("Grotte", "une grotte sombre et sinueuse.", image = "grotte.png")
         self.rooms.append(grotte)
-        mer = Room("Mer", "une mer calme et paisible.")
+        mer = Room("Mer", "une mer calme et paisible.", image = "mer.png")
         self.rooms.append(mer)
-        montagne = Room("Montagne", "les montagnes du royaume.")
+        montagne = Room("Montagne", "les montagnes du royaume.", image = "montagne.png")
         self.rooms.append(montagne)
-        cristaux = Room("Cristaux", "une grotte de cristal. Un dragon apparaît devant vous. \033[1mMontez\033[0m sur son dos !")
+        cristaux = Room("Cristaux", "une grotte de cristal. Un dragon apparaît devant vous. Montez sur son dos !", image = "cristaux.png")
         self.rooms.append(cristaux)
-        ciel = Room("Ciel", "les airs ! Vous vous dirigez en direction du repère du sorcier à dos de dragon.")
+        ciel = Room("Ciel", "les airs ! Vous vous dirigez en direction du repère du sorcier à dos de dragon.", image = "ciel.png")
         self.rooms.append(ciel)
-        repere = Room("Repère du sorcier", "le repère du sorcier...")
+        repere = Room("Repère du sorcier", "le repère du sorcier...", image = "repere.png")
         self.rooms.append(repere)
-        fontaine = Room("Fontaine", "une fontaine magique.")
+        fontaine = Room("Fontaine", "une fontaine magique.", image = "fontaine.png")
         self.rooms.append(fontaine)
-        Maison_du_sage = Room("Maison du sage", "la maison du sage.")
+        Maison_du_sage = Room("Maison du sage", "la maison du sage.", image = "maison_du_sage.png")
         self.rooms.append(Maison_du_sage)
-        Le_jardin = Room("Le jardin du jardinier", "un jardin rempli de plante et de fruit et légumes.")
+        Le_jardin = Room("Le jardin du jardinier", "un jardin rempli de plante et de fruit et légumes.", image = "le_jardin.png")
         self.rooms.append(Le_jardin)
-        L_épicerie = Room("L'épicerie", " Le lieux de travail d'Elra qui vend toute sorte d'herbe et potions.")
+        L_épicerie = Room("L'épicerie", " Le lieux de travail d'Elra qui vend toute sorte d'herbe et potions.", image = "l_epicerie.png")
         self.rooms.append(L_épicerie)
-        sous_sol_du_sorcier = Room("Sous-sol du sorcier", "le sous-sol du sorcier, rempli de potions et ingrédients mystérieux.")
+        sous_sol_du_sorcier = Room("Sous-sol du sorcier", "le sous-sol du sorcier, rempli de potions et ingrédients mystérieux.", image = "sous_sol_du_sorcier.png")
         self.rooms.append(sous_sol_du_sorcier)
-        bibliothèque_du_sorcier = Room("Bibliothèque du sorcier", "la bibliothèque du sorcier, remplie de livres anciens et de parchemins magiques.")
+        bibliothèque_du_sorcier = Room("Bibliothèque du sorcier", "la bibliothèque du sorcier, remplie de livres anciens et de parchemins magiques.", image = "bibliothèque_du_sorcier.png")
         self.rooms.append(bibliothèque_du_sorcier)
-        couloir_du_sorcier = Room("Couloir du sorcier", "le couloir du sorcier, menant à différentes pièces mystérieuses.")
+        couloir_du_sorcier = Room("Couloir du sorcier", "le couloir du sorcier, menant à différentes pièces mystérieuses.", image = "couloir_du_sorcier.png")
         self.rooms.append(couloir_du_sorcier)
-        salle_de_rituel = Room("Salle de rituel", "la salle de rituel du sorcier, où des cérémonies magiques ont lieu.")
+        salle_de_rituel = Room("Salle de rituel", "la salle de rituel du sorcier, où des cérémonies magiques ont lieu.", image = "salle_de_rituel.png")
         self.rooms.append(salle_de_rituel)
 
         # Create exits for rooms
@@ -147,26 +152,23 @@ class Game:
         Maison_du_sage.exits = {"N" : None, "E" : village, "S" : None, "O" : None, "U" : None, "D" : None}
         ruines.exits = {"N" : None, "E" : grotte, "S" : montagne, "O" : fontaine, "U" : None, "D" : None}
         pont.exits = {"N" : fontaine, "E" : None, "S" : None, "O" : None, "U" : mer, "D" : None}
-        ##Comme le personnage est prit au piège dans la grotte, pourquoi ne pas faire un sénario ou il ferme les yeux puis les rouvrent et se retrouve dans la forêt (transition). 
-        ### On pourrait demander à la personne d'utiliser la commende 'go ?' pour que celle-ci le ramène à la forêt.
-        grotte.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None,  "?": foret }
-        montagne.exits = {"N" : None, "E" : None, "S" : cristaux, "O" : None, "U" : None, "D" : None}
+        grotte.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None}
+        montagne.exits = {"N" : None, "E" : cristaux, "S" : None, "O" : None, "U" : None, "D" : None}
         cristaux.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : ciel, "D" : None}
         ciel.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : repere}
         repere.exits = {"N" : None, "E" : None, "S" : couloir_du_sorcier, "O" : None, "U" : None, "D" : None}
         mer.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : montagne}
         couloir_du_sorcier.exits = {"N" : None, "E" : bibliothèque_du_sorcier, "S" : sous_sol_du_sorcier, "O" : salle_de_rituel, "U" : None, "D" : None}
         sous_sol_du_sorcier.exits = {"N" : couloir_du_sorcier, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None}
-        salle_de_rituel.exits = {"N" : None, "E" : None, "S" : None, "O" : couloir_du_sorcier, "U" : None, "D" : None}
-        bibliothèque_du_sorcier.exits = {"N" : None, "E" : couloir_du_sorcier, "S" : None, "O" : None, "U" : None, "D" : None}
-
-
-
-
-
+        salle_de_rituel.exits = {"N" : None, "E" : None, "S" : None, "O" : None, "U" : None, "D" : None}
+        bibliothèque_du_sorcier.exits = {"N" : None, "E" : None, "S" : None, "O" : couloir_du_sorcier, "U" : None, "D" : None}
+ 
         # Setup player and starting room
 
-        self.player = Player(input("\nEntrez votre nom: "))
+        if player_name:
+            self.player = Player(player_name)
+        else:
+            self.player = Player(input("\nEntrez votre nom: "))
         self.player.current_room = chambre 
 
         # Setup all quests
@@ -346,6 +348,12 @@ class Game:
         while not self.finished:
             # Get the command from the player
             self.process_command(input("> "))
+        try:
+            print("\nFermeture du jeu dans 5 secondes...\n")
+            sys.stdout.flush()
+            time.sleep(5)
+        except Exception:
+            pass
         return None
 
     # Process the command entered by the player
@@ -395,7 +403,7 @@ class Game:
 
     # Print the welcome message
     def print_welcome(self):
-        print(f"\nBienvenue {self.player.name} dans ce jeu d'aventure !")
+        print(f"\nBienvenue {self.player.name} dans ce jeu d'aventure ! Vous êtes une princesse dans un royaume médiéval fantastique et un sorcier maléfique a jeté une malédiction sur votre royaume ! Parviendrez-vous à le vaincre et à restaurer la paix ?\n")
         print("Entrez 'help' si vous avez besoin d'aide.")
 
         # Affiche la description courte de la pièce de départ (sans la liste d'objets).
@@ -445,12 +453,299 @@ class Game:
             except Exception:
                 moved = False
 
+ 
+##############################
+# Tkinter GUI Implementation #
+##############################
+
+class _StdoutRedirector:
+    """Redirect sys.stdout writes into a Tkinter Text widget."""
+    def __init__(self, text_widget):
+        self.text_widget = text_widget
+
+    def write(self, msg):
+        """Write message to the Text widget."""
+        if msg:
+            self.text_widget.configure(state="normal")
+            self.text_widget.insert("end", msg)
+            self.text_widget.see("end")
+            self.text_widget.configure(state="disabled")
+
+    def flush(self):
+        """Flush method required by sys.stdout interface (no-op for Text widget)."""
+
+
+class GameGUI(tk.Tk):
+    """Tkinter GUI for the text-based adventure game.
+
+    Layout layers:
+    L3 (top): Split into left image area (600x400) and right buttons.
+    L2 (middle): Scrolling terminal output.
+    L1 (bottom): Command entry field.
+    """
+
+    IMAGE_WIDTH = 600
+    IMAGE_HEIGHT = 400
+
+    def __init__(self):
+        super().__init__()
+        self.title("TBA")
+        self.geometry("900x700")  # Provide enough space
+        self.minsize(900, 650)
+
+        # Underlying game logic instance
+        self.game = Game()
+        self.game.gui = self  # Link GUI to game for access in actions
+
+        # Ask player name via dialog (fallback to 'Joueur')
+        name = simpledialog.askstring("Nom", "Entrez votre nom:", parent=self)
+        if not name:
+            name = "Joueur"
+        self.game.setup(player_name=name)  # Pass name to avoid double prompt
+
+        # Build UI layers
+        self._build_layout()
+
+        # Redirect stdout so game prints appear in terminal output area
+        self.original_stdout = sys.stdout
+        sys.stdout = _StdoutRedirector(self.text_output)
+
+        # Print welcome text in GUI
+        self.game.print_welcome()
+
+        # Load initial room image
+        self._update_room_image()
+
+        # Handle window close
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+
+    # -------- Layout construction --------
+    def _build_layout(self):
+        # Configure root grid: 3 rows (L3, L2, L1)
+        self.grid_rowconfigure(0, weight=0)  # Image/buttons fixed height
+        self.grid_rowconfigure(1, weight=1)  # Terminal output expands
+        self.grid_rowconfigure(2, weight=0)  # Entry fixed
+        self.grid_columnconfigure(0, weight=1)
+
+        # L3 Top frame
+        top_frame = ttk.Frame(self)
+        top_frame.grid(row=0, column=0, sticky="nsew", padx=6, pady=(6,3))
+        top_frame.grid_columnconfigure(0, weight=0)
+        top_frame.grid_columnconfigure(1, weight=1)
+
+        # L3L Image area (left)
+        image_frame = ttk.Frame(top_frame, width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT)
+        image_frame.grid(row=0, column=0, sticky="nw", padx=(0,6))
+        image_frame.grid_propagate(False)  # Keep requested size
+        self.canvas = tk.Canvas(image_frame,
+                                width=self.IMAGE_WIDTH,
+                                height=self.IMAGE_HEIGHT,
+                                bg="#222")
+        self.canvas.pack(fill="both", expand=True)
+
+        # Initialize image reference (will be loaded by _update_room_image)
+        self._image_ref = "chambre.png"  # Keep reference to prevent garbage collection
+        # Initial image will be loaded after welcome message
+
+        # L3R Buttons area (right)
+        buttons_frame = ttk.Frame(top_frame)
+        buttons_frame.grid(row=0, column=1, sticky="ne")
+        for i in range(10):
+            buttons_frame.grid_rowconfigure(i, weight=0)
+        buttons_frame.grid_columnconfigure(0, weight=0)
+        buttons_frame.grid_columnconfigure(1, weight=0)
+
+        # Load button images (keep references to prevent garbage collection)
+        assets_dir = Path(__file__).parent / 'assets'
+        # Load pre-resized 50x50 PNG images for better quality
+        self._btn_help = tk.PhotoImage(file=str(assets_dir / 'help-50.png'))
+        self._btn_nord = tk.PhotoImage(file=str(assets_dir / 'up-arrow-50.png'))
+        self._btn_sud = tk.PhotoImage(file=str(assets_dir / 'down-arrow-50.png'))
+        self._btn_ouest = tk.PhotoImage(file=str(assets_dir / 'left-arrow-50.png'))
+        self._btn_est = tk.PhotoImage(file=str(assets_dir / 'right-arrow-50.png'))
+        self._btn_quit = tk.PhotoImage(file=str(assets_dir / 'quit-50.png'))
+        self._btn_up = tk.PhotoImage(file=str(assets_dir / 'up-arrow-50.png'))
+        self._btn_down = tk.PhotoImage(file=str(assets_dir / 'down-arrow-50.png'))
+        self._btn_sac = tk.PhotoImage(file=str(assets_dir / 'sac.png'))
+        self._btn_look = tk.PhotoImage(file=str(assets_dir / 'look.png'))
+        self._btn_quests = tk.PhotoImage(file=str(assets_dir / 'quests.png'))
+
+        # Command buttons
+        tk.Button(buttons_frame,
+                  image=self._btn_help,
+                  command=lambda: self._send_command("help"),
+                  bd=0).grid(row=0, column=0, pady=2)
+        tk.Button(buttons_frame,
+                  image=self._btn_sac,
+                  command=lambda: self._send_command("inventory"),
+                  bd=0).grid(row=0, column=1, pady=2)
+        tk.Button(buttons_frame,
+                  image=self._btn_look,
+                  command=lambda: self._send_command("look"),
+                  bd=0).grid(row=0, column=2, pady=2)
+        tk.Button(buttons_frame,
+                  image=self._btn_quests,
+                  command=lambda: self._send_command("quests"),
+                  bd=0).grid(row=0, column=3, pady=2)
+        
+        # Movement buttons (N,E,S,O,U,D)
+        move_frame = ttk.LabelFrame(buttons_frame, text="Déplacements")
+        move_frame.grid(row=1, column=0, columnspan=4, sticky="ew", pady=4)
+        tk.Button(move_frame,
+                  image=self._btn_nord,
+                  command=lambda: self._send_command("go N"),
+                  bd=0).grid(row=0, column=0, columnspan=2)
+        tk.Button(move_frame,
+                  image=self._btn_ouest,
+                  command=lambda: self._send_command("go O"),
+                  bd=0).grid(row=1, column=0)
+        tk.Button(move_frame,
+                  image=self._btn_est,
+                  command=lambda: self._send_command("go E"),
+                  bd=0).grid(row=1, column=1)
+        tk.Button(move_frame,
+                  image=self._btn_sud,
+                  command=lambda: self._send_command("go S"),
+                  bd=0).grid(row=2, column=0, columnspan=2)
+        #Up/Down buttons
+        tk.Button(move_frame,
+                  image=self._btn_up,
+                  command=lambda: self._send_command("go U"),
+                  bd=0).grid(row=0, column=2, columnspan=2)
+        tk.Button(move_frame,
+                  image=self._btn_down,
+                  command=lambda: self._send_command("go D"),
+                  bd=0).grid(row=2, column=2, columnspan=2)
+        
+        #Back button
+        tk.Button(buttons_frame,
+                  image=self._btn_ouest,
+                  command=lambda: self._send_command("back"),
+                  bd=0).grid(row=2, column=0, columnspan=1)
+
+        # Quit button
+        tk.Button(buttons_frame,
+                  image=self._btn_quit,
+                  command=lambda: self._send_command("quit"),
+                  bd=0).grid(row=2, column=3, columnspan=4)
+
+        # L2 Terminal output area (Text + Scrollbar)
+        output_frame = ttk.Frame(self)
+        output_frame.grid(row=1, column=0, sticky="nsew", padx=6, pady=3)
+        output_frame.grid_rowconfigure(0, weight=1)
+        output_frame.grid_columnconfigure(0, weight=1)
+
+        scrollbar = ttk.Scrollbar(output_frame, orient="vertical")
+        self.text_output = tk.Text(output_frame,
+                                   wrap="word",
+                                   yscrollcommand=scrollbar.set,
+                                   state="disabled",
+                                   bg="#111", fg="#eee")
+        scrollbar.config(command=self.text_output.yview)
+        self.text_output.grid(row=0, column=0, sticky="nsew")
+        scrollbar.grid(row=0, column=1, sticky="ns")
+
+        # L1 Entry area
+        entry_frame = ttk.Frame(self)
+        entry_frame.grid(row=2, column=0, sticky="ew", padx=6, pady=(3,6))
+        entry_frame.grid_columnconfigure(0, weight=1)
+
+        self.entry_var = tk.StringVar()
+        self.entry = ttk.Entry(entry_frame, textvariable=self.entry_var)
+        self.entry.grid(row=0, column=0, sticky="ew")
+        self.entry.bind("<Return>", self._on_enter)
+        self.entry.focus_set()
+
+
+    # -------- Image update --------
+    def _update_room_image(self):
+        """Update the canvas image based on the current room."""
+        if not self.game.player or not self.game.player.current_room:
+            return
+
+        room = self.game.player.current_room
+        assets_dir = Path(__file__).parent / 'assets'
+
+        # Use room-specific image if available, otherwise fallback
+        if room.image:
+            image_path = assets_dir / room.image
+        else:
+            image_path = assets_dir / 'scene.png'
+
+        try:
+            # Load new image
+            self._image_ref = tk.PhotoImage(file=str(image_path))
+            # Clear canvas and redraw image
+            self.canvas.delete("all")
+            self.canvas.create_image(
+                self.IMAGE_WIDTH/2,
+                self.IMAGE_HEIGHT/2,
+                image=self._image_ref
+            )
+        except (FileNotFoundError, tk.TclError):
+            # Fallback to text if image not found or cannot be loaded
+            self.canvas.delete("all")
+            self.canvas.create_text(
+                self.IMAGE_WIDTH/2,
+                self.IMAGE_HEIGHT/2,
+                text=f"Image: {room.name}",
+                fill="white",
+                font=("Helvetica", 18)
+            )
+
+
+    # -------- Event handlers --------
+    def _on_enter(self, _event=None):
+        """Handle Enter key press in the entry field."""
+        value = self.entry_var.get().strip()
+        if value:
+            self._send_command(value)
+        self.entry_var.set("")
+
+
+    def _send_command(self, command):
+        if self.game.finished:
+            return
+        # Echo the command in output area
+        print(f"> {command}\n")
+        self.game.process_command(command)
+        # Update room image after command (in case player moved)
+        self._update_room_image()
+        if self.game.finished:
+            # Disable further input and schedule close (brief delay to show farewell)
+            self.entry.configure(state="disabled")
+            self.after(600, self._on_close)
+
+
+    def _on_close(self):
+        # Restore stdout and destroy window
+        sys.stdout = self.original_stdout
+        self.destroy()
+
 
 def main():
-    # Create a game object and play the game
-    Game().play()
+    """Entry point.
+
+    If '--cli' is passed as an argument, start the classic console version.
+    Otherwise launch the Tkinter GUI.
+    Fallback to CLI if GUI cannot be initialized (e.g., headless environment).
+    """
+    args = sys.argv[1:]
+    if '--cli' in args:
+        Game().play()
+        return
     
+    # Test if Tkinter is actually usable before trying to create GUI
+    try:
+        # Tkinter is available, proceed with GUI
+        app = GameGUI()
+        app.mainloop()
+    except tk.TclError as e:
+        # Fallback to CLI if GUI fails (e.g., no DISPLAY, Tkinter not available)
+        print(f"GUI indisponible ({e}). Passage en mode console.")
+        Game().play()
+
 
 if __name__ == "__main__":
     main()
- 

@@ -24,6 +24,7 @@ import player
 from quests import Quest
 import random
 import time
+import sys
 
 
 class Actions:
@@ -93,6 +94,20 @@ class Actions:
         else:
             game.save_state()
             player.move(direction)
+            # Check if player entered the Grotte (game over)
+            if player.current_room.name == "Grotte":
+                # Update the room image to show the cave BEFORE game over messages
+                if game.gui is not None:
+                    game.gui._update_room_image()
+                    game.gui.update()  # Force GUI to display the cave image
+                print("\nVous entrez dans la grotte...\n")
+                print("Vous vous êtes perdu dans la grotte. Vous avez péri.")
+                print("\n===== GAME OVER =====\n")
+                # Freeze the GUI for 5 seconds AFTER displaying game over
+                if game.gui is not None:
+                    game.gui.update()  # Force GUI update to show game over message
+                    time.sleep(5)  # Freeze for 5 seconds
+                game.finished = True
             return True
         
         
@@ -510,93 +525,6 @@ class Actions:
         
         return True   
         
-    def start_sorcerer_battle(game, player):
-        """
-        Lance un combat interactif contre le sorcier Zeph avec système de tours et de chance de toucher.
-        
-        Args:
-            game (Game): L'objet jeu
-            player (Player): Le joueur
-            
-        Returns:
-            bool: True si le joueur gagne, False s'il perd
-        """
-        # Initialisation des statistiques du sorcier
-        sorcerer_hp = 80
-        sorcerer_max_hp = 80
-        player_accuracy = 0.70  
-        sorcerer_accuracy = 0.55  
-        player_min_damage = 8
-        player_max_damage = 18
-        sorcerer_min_damage = 10
-        sorcerer_max_damage = 20
-        
-        # Réinitialiser les PV du joueur pour ce combat
-        player.hp = player.max_hp
-        
-        print(f"\n{'='*50}")
-        print(f"COMBAT - {player.name} vs Zeph le Sorcier")
-        print(f"{'='*50}\n")
-        print(f"🧙 Zeph : {sorcerer_hp}/{sorcerer_max_hp} PV")
-        print(f"⚔️  Vous : {player.hp}/{player.max_hp} PV\n")
-        
-        turn = 0
-        
-        while player.hp > 0 and sorcerer_hp > 0:
-            turn += 1
-            print(f"\n--- Tour {turn} ---\n")
-            
-            # TOUR DU JOUEUR
-            print("🎯 Votre tour !")
-            player_action = input("Attaquer (a) ou Défendre (d) ? : ").lower().strip()
-            
-            if player_action == "d":
-                # Défendre réduit les dégâts reçus
-                defense_bonus = 0.5
-                print("Vous vous préparez à la défense...\n")
-            else:
-                defense_bonus = 1.0
-                # Attaquer
-                if random.random() < player_accuracy:
-                    damage = random.randint(player_min_damage, player_max_damage)
-                    sorcerer_hp -= damage
-                    print(f"✅ Coup critique ! Vous infligez {damage} dégâts au sorcier !")
-                else:
-                    print(f"❌ Manqué ! Le sorcier esquive votre attaque.")
-            
-            print(f"🧙 Zeph : {max(0, sorcerer_hp)}/{sorcerer_max_hp} PV")
-            
-            if sorcerer_hp <= 0:
-                print(f"\n{'='*50}")
-                print("🎉 VICTOIRE ! Vous avez vaincu Zeph !")
-                print(f"{'='*50}\n")
-                player.hp = max(1, player.hp)  # Assurer que le joueur a au moins 1 PV
-                return True
-            
-            time.sleep(1)
-            
-            # TOUR DU SORCIER
-            print(f"\n🧙 Tour du sorcier !\n")
-            time.sleep(0.5)
-            
-            if random.random() < sorcerer_accuracy:
-                damage = random.randint(sorcerer_min_damage, sorcerer_max_damage)
-                damage = int(damage * defense_bonus)
-                player.hp -= damage
-                print(f"⚡ Le sorcier vous attaque ! {damage} dégâts reçus !")
-            else:
-                print(f"🛡️  Vous esquivez l'attaque du sorcier !")
-            
-            print(f"⚔️  Vous : {max(0, player.hp)}/{player.max_hp} PV")
-            
-            if player.hp <= 0:
-                print(f"\n{'='*50}")
-                print("💀 DÉFAITE ! Vous avez été vaincu...")
-                print(f"{'='*50}\n")
-                return False
-            
-            time.sleep(1)
-        
     def talk(game, list_of_words, number_of_parameters):
         """
         Permet au joueur de parler à un personnage dans la pièce actuelle.
@@ -693,49 +621,54 @@ class Actions:
             game.player.quest_manager.complete_objective("Parler à 5 PNJ", "Rencontrer les habitants")
 
 
-        # --- Combat contre le sorcier Zeph ---
+        # --- Conversation avec le sorcier Zeph ---
         if character.name == "Zeph":
-            print("\nLe sorcier vous fixe intensément...")
-            print("Une aura sombre vous entoure... Le combat commence !\n")
-            choix = input("Voulez-vous combattre (oui/non) : ").lower()
-            # --- Victoire/Défaite au combat ---
-            if choix == "oui":
-                # Lancer le combat interactif
-                player_won = Actions.start_sorcerer_battle(game, player)
+            # Initialize conversation counter for Zeph if not exists
+            if not hasattr(player, "zeph_talk_count"):
+                player.zeph_talk_count = 0
+            
+            player.zeph_talk_count += 1
+            print(f"\nZeph vous regarde intensément (conversation {player.zeph_talk_count}/2)...\n")
+            
+            if player.zeph_talk_count == 1:
+                print("Zeph : Tu as montré beaucoup de détermination pour arriver jusqu'ici...")
+                print("Zeph : Un jour peut-être comprendras-tu mon vrai dessein.\n")
+            
+            elif player.zeph_talk_count == 2:
+                print("Zeph : Vous avez découvert son secret : il cherchait à protéger le royaume des vraies menaces !")
+                print("Le sorcier sourit énigmatiquement.\n")
                 
-                if player_won:
-                    print("Vous avez découvert son secret : il cherchait à protéger le royaume des vraies menaces !")
+                # Complete the sorcerer secret quest
+                game.player.quest_manager.complete_objective("Découvrir le secret de Zeph", "Le Secret du Sorcier")
+                
+                # Complete main quest objectives
+                game.player.quest_manager.complete_objective("Atteindre le repère du sorcier", "Vaincre le Sorcier")
+                game.player.quest_manager.complete_objective("Vaincre le sorcier", "Vaincre le Sorcier")
+                
+                # Check if main quest is completed and end game
+                if game.player.quest_manager.is_completed("Vaincre le Sorcier"):
+                    print("\n 🎉 FÉLICITATIONS ! Vous avez compris le secret du sorcier et sauvé le royaume !")
+                    print("Vous êtes téléporté devant le château en héros...\n")
                     
-                    # Complete the sorcerer secret quest
-                    game.player.quest_manager.complete_objective("Découvrir le secret de Zeph", "Le Secret du Sorcier")
+                    # Find the Chateau room and teleport player there
+                    for room in game.rooms:
+                        if room.name == "Chateau":
+                            game.player.current_room = room
+                            break
                     
-                    # Complete main quest objectives
-                    game.player.quest_manager.complete_objective("Atteindre le repère du sorcier", "Vaincre le Sorcier")
-                    game.player.quest_manager.complete_objective("Vaincre le sorcier", "Vaincre le Sorcier")
+                    # Update the room image to show the Chateau BEFORE victory message
+                    if game.gui is not None:
+                        game.gui._update_room_image()
+                        game.gui.update()  # Force GUI to display the Chateau image
                     
-                    # Check if main quest is completed and end game
-                    if game.player.quest_manager.is_completed("Vaincre le Sorcier"):
-                        print("\n 🎉 FÉLICITATIONS ! Vous avez vaincu le sorcier et sauvé le royaume !")
-                        print("Vous êtes téléporté devant le château en héros...\n")
-                        
-                        # Find the Chateau room and teleport player there
-                        for room in game.rooms:
-                            if room.name == "Chateau":
-                                game.player.current_room = room
-                                break
-                        
-                        print("\n===== VICTOIRE ! =====\n")
-                        game.finished = True
-                else:
-                    print("\n===== GAME OVER =====\n")
+                    print("\n===== VICTOIRE ! =====\n")
+                    
+                    # Freeze the GUI for 5 seconds AFTER displaying victory
+                    if game.gui is not None:
+                        game.gui.update()  # Force GUI update to show victory message
+                        time.sleep(5)  # Freeze for 5 seconds
+                    
                     game.finished = True
-
-            # --- Refus du combat ---
-            else:
-                print("\nVous refusez le combat...")
-                print("Le sorcier lève sa main... Une explosion vous frappe de plein fouet !")
-                print("\n===== GAME OVER =====\n")
-                game.finished = True
 
             return True
         

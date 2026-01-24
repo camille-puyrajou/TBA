@@ -1,4 +1,5 @@
 from quests import QuestManager
+import sys
 
 
 DEBUG = False
@@ -148,6 +149,7 @@ class Player():
             try:
                 # Après un déplacement, n'affiche que la description courte (sans la liste d'objets).
                 print(self.current_room.get_short_description())
+                sys.stdout.flush()
             except Exception:
                 pass
 
@@ -191,8 +193,6 @@ class Player():
         
     def get_money(self):
         return f"Vous avez {self.money} écus."
-
-        
 
     def current_weight(self):
         """Calcule le poids total des objets dans l'inventaire du joueur."""
